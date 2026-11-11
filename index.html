@@ -610,7 +610,7 @@ html.lsPoOn body>*:not(#lsPo){visibility:hidden!important}
 <!-- ===== fin lives-portal-obligatorio v2 ===== -->
 
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Líneas de costura · Cambio de estilo</title>
+<title>Botones de la línea de costura</title>
 <style>
 :root{
   --petrol:#0E3B36;--emer:#10B981;--sage:#0F7A5A;--sage-dark:#0B815E;--slate:#4E6B78;
@@ -620,112 +620,76 @@ html.lsPoOn body>*:not(#lsPo){visibility:hidden!important}
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 body{margin:0;background:var(--warm-light);color:#333;font-family:Calibri,Arial,sans-serif;
-  font-size:14px;line-height:1.35;font-variant-numeric:tabular-nums;}
+  font-size:14px;line-height:1.3;font-variant-numeric:tabular-nums;}
 .wrap{padding:10px clamp(10px,2vw,40px) 40px;}
 .errBox{background:#FBE9E9;border:1px solid var(--rose);border-radius:10px;padding:12px 16px;color:var(--rose);font-size:14px;margin-bottom:10px;display:none;}
 .tit{font-size:12px;font-weight:700;color:var(--stone);letter-spacing:.5px;margin:10px 2px 8px;}
 .btn{font-family:inherit;font-size:14px;font-weight:700;border-radius:10px;padding:8px 14px;min-height:44px;cursor:pointer;
   border:1px solid var(--warm);background:#fff;color:var(--sage);}
-.btn.pri{background:var(--sage);color:#fff;border-color:var(--sage);}
-.btn.rojo{color:var(--rose);}
-.btn:disabled{opacity:.5;cursor:not-allowed;}
 
-/* Elegir línea */
+/* Elegir línea (una sola vez por equipo) */
 .lineas{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;}
 .lin{border:none;font-family:inherit;cursor:pointer;background:var(--card);border-radius:var(--r);box-shadow:var(--sh);
   min-height:96px;font-size:22px;font-weight:700;color:var(--petrol);}
 .lin:active{transform:scale(.97);}
 
-/* Lo que identifica el registro: línea y OP, fijo y compacto */
-.fijo{position:sticky;top:0;z-index:10;background:var(--card);border-radius:var(--r);box-shadow:var(--sh);
-  padding:8px 12px;margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.fijo .id{font-weight:700;font-size:15px;color:var(--petrol);margin-right:auto;}
+/* Qué línea es: fijo y compacto */
+.fijo{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:6px 8px 6px 14px;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.fijo .id{font-weight:700;font-size:18px;color:var(--petrol);margin-right:auto;}
 .fijo .btn{min-height:36px;padding:4px 12px;font-size:13px;}
-.chip{font-size:12.5px;font-weight:700;padding:4px 10px;border-radius:20px;background:var(--warm-light);color:var(--stone);white-space:nowrap;}
-.chip.ok{background:#E7F4EF;color:var(--sage);}
-.chip.esp{background:#FEF3E2;color:var(--taupe);}
-.chip.rech{background:#FCEBEB;color:var(--rose);}
 
-/* Iniciar cambio */
-.panel{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:18px 14px 14px;margin-top:12px;position:relative;overflow:hidden;}
+/* Los botones fijos: siempre los mismos, siempre en el mismo lugar */
+.botones{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+@media(min-width:760px){.botones{grid-template-columns:repeat(3,1fr);gap:12px;}}
+.bot{border:3px solid transparent;font-family:inherit;cursor:pointer;background:var(--card);border-radius:16px;box-shadow:var(--sh);
+  min-height:clamp(128px,24vh,220px);padding:12px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  text-align:center;color:#333;position:relative;overflow:hidden;}
+.bot:active{transform:scale(.97);}
+.bot.guardando{opacity:.55;}
+.bot .ic{font-size:36px;line-height:1.1;}
+.bot .nom{font-size:clamp(18px,2.6vw,24px);font-weight:700;line-height:1.15;}
+.bot .tiempo{font-size:clamp(22px,3.4vw,32px);font-weight:700;line-height:1.1;display:none;}
+.bot .pista{font-size:12.5px;display:none;}
+.bot.azul{border-color:#C9D6DC;} .bot.rojo{border-color:#F3C2C2;} .bot.ambar{border-color:#F6DDB5;}
+.bot.on .tiempo,.bot.on .pista{display:block;}
+.bot.on .ic{font-size:26px;}
+.bot.on{color:#fff;box-shadow:0 6px 18px rgba(14,59,54,.25);}
+.bot.on.azul{background:var(--slate);border-color:var(--slate);}
+.bot.on.rojo{background:var(--rose);border-color:var(--rose);}
+.bot.on.ambar{background:var(--taupe);border-color:var(--taupe);}
+
+.panel{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:18px 14px 12px;margin-top:14px;position:relative;overflow:hidden;}
 .panel .tira{position:absolute;left:0;right:0;top:0;height:4px;background:var(--slate);}
-.panel .tira.resultado{background:var(--sage);}
-.campo{display:block;font-size:13px;font-weight:700;color:var(--stone);margin-bottom:12px;}
-.campo input,.campo textarea,.campo select{display:block;width:100%;margin-top:4px;font-family:inherit;font-size:17px;color:#333;
-  border:1px solid var(--warm);border-radius:10px;padding:10px 12px;min-height:46px;background:#fff;}
-.campo textarea{min-height:220px;font-size:15px;line-height:1.5;}
-.campo small{display:block;font-weight:400;margin-top:4px;font-size:12.5px;}
-.campo.mal input,.campo.mal textarea,.campo.mal select{border-color:var(--rose);background:#FFF7F7;}
-.campo .msj{color:var(--rose);}
-.nuevo{max-width:760px;margin:0 auto;}
-
-/* Tarjetas de máquina: siempre en el mismo lugar */
-.maqs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
-.maq{border:none;font-family:inherit;text-align:left;cursor:pointer;background:var(--card);border-radius:var(--r);
-  box-shadow:var(--sh);padding:10px 12px 10px 16px;min-height:96px;position:relative;overflow:hidden;
-  display:flex;flex-direction:column;color:#333;}
-.maq::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--warm);}
-.maq:active{transform:scale(.97);}
-.maq.guardando{opacity:.55;}
-.maq .cod{font-size:21px;font-weight:700;line-height:1.1;}
-.maq .op{font-size:12px;color:var(--stone);margin-top:1px;}
-.maq .est{margin-top:auto;padding-top:6px;font-size:13.5px;font-weight:700;display:flex;justify-content:space-between;gap:6px;align-items:baseline;}
-.maq .min{font-size:12.5px;font-weight:700;white-space:nowrap;}
-.maq .x{position:absolute;right:8px;top:8px;font-size:11.5px;font-weight:700;color:var(--rose);background:#FCEBEB;border-radius:20px;padding:1px 7px;}
-.maq.PEND .est{color:var(--stone);}
-.maq.GRAD::before,.maq.PROB::before,.maq.ENV::before{background:var(--slate);}
-.maq.GRAD,.maq.PROB,.maq.ENV{background:#EAF0F3;} .maq.GRAD .est,.maq.PROB .est,.maq.ENV .est{color:var(--slate);}
-.maq.ESP::before{background:var(--tan);}
-.maq.ESP{background:#FEF3E2;} .maq.ESP .est{color:var(--taupe);}
-.maq.RECH::before{background:var(--rose);}
-.maq.RECH{background:#FCEBEB;} .maq.RECH .est{color:var(--rose);}
-.maq.LISTA::before{background:var(--sage);}
-.maq.LISTA{background:#E7F4EF;} .maq.LISTA .est{color:var(--sage);}
-.maq.pp{grid-column:1/-1;min-height:70px;flex-direction:row;align-items:center;gap:12px;}
-.maq.pp .est{margin:0 0 0 auto;padding:0;gap:12px;}
-
-.acc{display:flex;gap:8px;flex-wrap:wrap;}
-.acc .btn{flex:1 1 180px;}
 .tscroll{overflow-x:auto;}
-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
 th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--stone);border-bottom:1px solid var(--warm);padding:7px 6px;white-space:nowrap;}
-td{padding:7px 6px;border-bottom:1px solid var(--warm-light);}
-.vacio{padding:18px 8px;text-align:center;color:var(--stone);}
+td{padding:8px 6px;border-bottom:1px solid var(--warm-light);}
+td .btn{min-height:34px;padding:2px 10px;font-size:12.5px;}
+.vacio{padding:16px 8px;text-align:center;color:var(--stone);}
 .pie{display:flex;justify-content:center;margin-top:16px;}
-@media(max-width:600px){ .colOp{display:none;} }
 
-/* Ventana de botones: todo en una sola pantalla, cada botón siempre en el mismo sitio */
+/* Qué estilo entra: botones tomados de la base de OPs */
 .fondo{position:fixed;inset:0;background:rgba(14,59,54,.55);z-index:2000;display:none;align-items:flex-end;justify-content:center;}
 .fondo.on{display:flex;}
-.hoja{background:var(--card);width:100%;max-width:720px;border-radius:16px 16px 0 0;padding:14px 14px 18px;max-height:100vh;overflow-y:auto;}
+.hoja{background:var(--card);width:100%;max-width:760px;border-radius:16px 16px 0 0;padding:14px 14px 16px;max-height:92vh;display:flex;flex-direction:column;}
 @media(min-width:760px){.fondo{align-items:center;}.hoja{border-radius:16px;}}
-.hoja .cab{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
-.hoja .cab b{font-size:22px;color:var(--petrol);}
-.hoja .cab span{font-size:13px;color:var(--stone);}
-.hoja .cerrar{margin-left:auto;border:1px solid var(--warm);background:#fff;border-radius:8px;min-width:44px;min-height:44px;font-size:17px;font-family:inherit;color:var(--stone);cursor:pointer;}
-.grp{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--stone);margin:10px 0 6px;}
-.bts{display:grid;gap:8px;}
-.bts.c2{grid-template-columns:1fr 1fr;} .bts.c3{grid-template-columns:repeat(3,1fr);} .bts.c5{grid-template-columns:repeat(5,1fr);}
-@media(max-width:600px){.bts.c5{grid-template-columns:repeat(3,1fr);}}
-.bt{border:2px solid transparent;border-radius:12px;font-family:inherit;font-weight:700;font-size:15px;cursor:pointer;
-  min-height:74px;padding:8px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;line-height:1.15;}
-.bt .ic{font-size:24px;line-height:1;}
-.bt small{font-size:11px;font-weight:400;}
-.bt:active{transform:scale(.96);}
-.bt.tra{background:#EAF0F3;color:var(--slate);}
-.bt.esp{background:#FEF3E2;color:var(--taupe);}
-.bt.ok{background:var(--sage);color:#fff;min-height:84px;font-size:18px;}
-.bt.no{background:var(--rose);color:#fff;min-height:84px;font-size:18px;}
-.bt.act{border-color:var(--petrol);}
-.hoja .quitar{margin-top:14px;text-align:center;}
-.hoja .quitar button{background:none;border:none;font-family:inherit;font-size:13px;color:var(--stone);text-decoration:underline;cursor:pointer;min-height:40px;}
+.hoja .cab{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.hoja .cab b{font-size:20px;color:var(--petrol);margin-right:auto;}
+.hoja .cab .btn{min-height:44px;}
+.hoja input{width:100%;font-family:inherit;font-size:18px;color:#333;border:1px solid var(--warm);border-radius:10px;padding:10px 12px;min-height:48px;background:#fff;margin-bottom:10px;}
+.estilos{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;overflow-y:auto;padding-bottom:4px;}
+.est{border:2px solid #C9D6DC;background:#fff;border-radius:12px;font-family:inherit;cursor:pointer;min-height:68px;padding:6px 4px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;color:#333;}
+.est b{font-size:20px;line-height:1.1;}
+.est small{font-size:11.5px;color:var(--stone);}
+.est:active{transform:scale(.96);background:var(--warm-light);}
 
 /* Aviso con Deshacer */
 .aviso{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:rgba(14,59,54,.96);color:#fff;border-radius:10px;
-  padding:10px 12px 10px 16px;font-size:14px;font-weight:700;z-index:2100;display:none;align-items:center;gap:14px;max-width:94vw;}
+  padding:10px 12px 10px 16px;font-size:15px;font-weight:700;z-index:2100;display:none;align-items:center;gap:14px;max-width:94vw;}
 .aviso.on{display:flex;}
 .aviso.mal{background:rgba(220,38,38,.97);}
-.aviso button{font-family:inherit;font-weight:700;font-size:14px;border:1px solid rgba(255,255,255,.5);background:none;color:#fff;border-radius:8px;min-height:40px;padding:0 14px;cursor:pointer;}
+.aviso button{font-family:inherit;font-weight:700;font-size:15px;border:1px solid rgba(255,255,255,.5);background:none;color:#fff;border-radius:8px;min-height:44px;padding:0 16px;cursor:pointer;}
 </style>
 <style id="lsLimp3Css">/* lives-limpieza v3 (30/10/2026) · fuera del portal tampoco hay títulos de panel ni notas explicativas */.panel>.pt,.panel>.ph{display:none!important}</style>
 </head>
@@ -733,53 +697,30 @@ td{padding:7px 6px;border-bottom:1px solid var(--warm-light);}
 <div class="wrap">
   <div class="errBox" id="errBox"></div>
 
-  <!-- 1 · elegir la línea (solo la primera vez en este equipo) -->
+  <!-- elegir la línea: solo la primera vez en este equipo (o nunca, si el link trae ?linea=) -->
   <div id="vLineas" style="display:none">
     <div class="tit">ELIGE LA LÍNEA</div>
     <div class="lineas" id="lineas"></div>
   </div>
 
-  <!-- 2 · la línea no tiene cambio abierto: iniciar uno -->
-  <div id="vNuevo" style="display:none">
-    <div class="fijo" data-ls-fijo><span class="id" id="nLinea"></span><button type="button" class="btn" data-cambiar-linea="1">Cambiar línea</button></div>
-    <div class="panel nuevo"><span class="tira resultado"></span>
-      <label class="campo" id="cEst">Estilo que entra
-        <input id="nEst" autocomplete="off" autocapitalize="characters" enterkeyhint="done">
-        <small id="nEstInfo"></small>
-      </label>
-      <label class="campo" id="cOp" style="display:none">OP (opcional)
-        <select id="nOp"></select>
-      </label>
-      <label class="campo" id="cMaq">Máquinas del estilo (opcional)
-        <textarea id="nMaq" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="CRA 08, Preparado de etiqueta&#10;BRA 06, Basta de manga 1&#10;RM4 38, Pegado de cuello"></textarea>
-        <small>Se puede dejar vacío y agregar las máquinas después. Una por renglón: código de la máquina, coma y la operación. También se puede pegar desde Excel (dos columnas).</small>
-        <small class="msj" id="nMsj"></small>
-      </label>
-      <button type="button" class="btn pri" id="bIniciar" style="width:100%;min-height:52px;font-size:16px">Iniciar cambio de estilo</button>
-    </div>
-  </div>
-
-  <!-- 3 · cambio abierto: las máquinas -->
-  <div id="vTab" style="display:none">
-    <div class="fijo" data-ls-fijo>
-      <span class="id" id="tId"></span>
-      <span class="chip" id="cTiempo"></span><span class="chip ok" id="cListas"></span><span class="chip esp" id="cEsp"></span><span class="chip rech" id="cRech"></span>
-      <button type="button" class="btn" data-cambiar-linea="1">Cambiar línea</button>
-    </div>
-    <div class="maqs" id="maqs"></div>
+  <!-- los botones fijos de la línea -->
+  <div id="vPanel" style="display:none">
+    <div class="fijo lsand-menu" data-ls-fijo><span class="id" id="pLinea"></span><button type="button" class="btn" id="bLinea">Cambiar línea</button></div>
+    <div class="botones lsand-menu" id="botones"></div>
     <div class="panel lsand-menu"><span class="tira"></span>
-      <div class="acc lsand-menu"><button type="button" class="btn" id="bAgregar">＋ Agregar máquina</button><button type="button" class="btn rojo" id="bCerrar">Cerrar cambio de estilo</button></div>
-    </div>
-    <div class="panel lsand-menu"><span class="tira"></span>
-      <div class="tscroll"><table><thead><tr><th>Inicio</th><th>Fin</th><th>Máquina</th><th class="colOp">Operación</th><th>Qué pasó</th><th>Minutos</th></tr></thead><tbody id="log"></tbody></table></div>
-      <div class="vacio" id="logVacio" style="display:none">Todavía no hay registros en este cambio.</div>
+      <div class="tscroll"><table><thead><tr><th>Inicio</th><th>Fin</th><th>Qué pasó</th><th>Minutos</th></tr></thead><tbody id="hoy"></tbody></table></div>
+      <div class="vacio" id="hoyVacio" style="display:none">Hoy todavía no hay registros en esta línea.</div>
     </div>
   </div>
 
   <div class="pie lsand-menu"><button class="btn" id="btnQuien" type="button" style="display:none"></button></div>
 </div>
-
-<div class="fondo" id="fondo"><div class="hoja" id="hoja"></div></div>
+<div class="fondo" id="fondo"><div class="hoja lsand-menu">
+  <div class="cab"><b>¿Qué estilo entra?</b><button type="button" class="btn" id="eDespues">Después</button></div>
+  <input id="eBuscar" type="search" inputmode="numeric" autocomplete="off" placeholder="Buscar estilo…" data-ls-fijo>
+  <div class="estilos" id="estilos"></div>
+  <div class="vacio" id="eVacio" style="display:none">Ningún estilo de la base de OPs coincide.</div>
+</div></div>
 <div class="aviso" id="aviso"><span id="avTxt"></span><button type="button" id="avBtn">Deshacer</button></div>
 
 <script>
@@ -840,15 +781,11 @@ function prepararQuien(){
 }
 
 /* ===== estado ===== */
-let INI=null, LINEA=null, T=null, PUEDE=false, OCUPADO=false, ABIERTA=null, ULTIMO=null, tAviso=null;
-const ICO={GRAD:'🔧',PROB:'🧵',ENV:'📏',MEC:'🔧',OPE:'👤',CAL:'📏',FIC:'📄',PLA:'📐'};
-function nomEst(c){ const e=(INI.estados||[]).find(x=>x.codigo===c); return e?e.nombre:'Sin empezar'; }
-function nomArea(c){ const a=(INI.areas||[]).find(x=>x.codigo===c); return a?a.nombre:''; }
-function texto(est,area){ if(!est) return 'Sin empezar'; if(est==='ESP'){ const n=nomArea(area); return 'Esperando '+(n==='Calidad'?n:n.toLowerCase()); } return nomEst(est); }
+let INI=null, LINEA=null, P=null, T0=0, PUEDE=false, OCUPADO=false, ULTIMO=null, tAviso=null, ESTILOS=null, REG_ESTILO=null;
 function dur(m){ if(m==null) return ''; m=Math.max(0,Math.round(Number(m))); return m<60?m+' min':Math.floor(m/60)+' h '+('0'+m%60).slice(-2); }
 function hhmm(s){ if(!s) return ''; const d=new Date(s); return isNaN(d)?'':d.toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit',hour12:false}); }
 function nomLinea(){ const l=(INI.lineas||[]).find(x=>x.codigo===LINEA); return l?l.nombre.replace(/^LINEA/i,'Línea'):''; }
-function ver(id){ ['vLineas','vNuevo','vTab'].forEach(v=>$(v).style.display=(v===id?'':'none')); }
+function ver(id){ ['vLineas','vPanel'].forEach(v=>$(v).style.display=(v===id?'':'none')); }
 
 async function iniciar(){
   try{ INI=await api('inicio'); }catch(e){ err(e.message); return; }
@@ -859,9 +796,10 @@ async function iniciar(){
   const L=INI.lineas||[];
   const hit=L.find(x=>x.codigo===l)||L.find(x=>norm(x.nombre)===norm(l))||L.find(x=>norm(x.nombre)===norm('LINEA '+l));
   if(hit){ LINEA=hit.codigo; await cargar(); } else elegirLinea();
+  api('estilos').then(d=>{ ESTILOS=d.estilos||[]; }).catch(()=>{});      /* la lista de estilos queda lista de antemano */
 }
 function elegirLinea(){
-  LINEA=null; T=null;
+  LINEA=null; P=null;
   $('lineas').innerHTML=(INI.lineas||[]).map(l=>'<button type="button" class="lin" data-l="'+esc(l.codigo)+'">'+esc(l.nombre.replace(/^LINEA/i,'Línea'))+'</button>').join('');
   ver('vLineas');
 }
@@ -870,175 +808,88 @@ $('lineas').addEventListener('click',async e=>{
   LINEA=b.dataset.l; try{ localStorage.setItem(LINEA_KEY,LINEA); }catch(x){}
   await cargar();
 });
-document.addEventListener('click',e=>{ if(e.target.closest('[data-cambiar-linea]')) elegirLinea(); });
+$('bLinea').addEventListener('click',elegirLinea);
 
 async function cargar(silencio){
   if(!LINEA) return;
-  try{ const d=await api('tablero',{linea_cod:LINEA}); T=d; if(!silencio) err(PUEDE?'':$('errBox').textContent); pintar(); }
+  try{ const d=await api('panel',{linea_cod:LINEA}); if(d.linea_cod!==LINEA) return; P=d; T0=Date.now(); pintar(); }
   catch(e){ if(!silencio) err('No se pudo cargar la línea: '+e.message); }
 }
-
+/* minutos en curso: lo que dijo la base más lo que pasó desde entonces en este equipo */
+function extra(){ return Math.floor((Date.now()-T0)/60000); }
 function pintar(){
-  if(!T||!T.cambio){ $('nLinea').textContent=nomLinea()+' · sin cambio de estilo abierto'; ver('vNuevo'); return; }
-  const c=T.cambio, M=T.maquinas||[], pp=T.pp||{};
-  let h='', listas=0, esp=0, rech=0;
-  M.forEach(m=>{
-    if(m.estado==='LISTA') listas++; if(m.estado==='ESP') esp++; rech+=Number(m.rechazos||0);
-    h+='<button type="button" class="maq '+(m.estado||'PEND')+'" data-cm="'+m.cm_id+'">'+
-       (Number(m.rechazos)?'<span class="x">✖ '+m.rechazos+'</span>':'')+
-       '<div><div class="cod">'+esc(m.maquina)+'</div><div class="op">'+esc(m.operacion)+'</div></div>'+
-       '<div class="est"><span>'+esc(texto(m.estado,m.area))+'</span>'+(m.min!=null?'<span class="min">'+dur(m.min)+'</span>':'')+'</div></button>';
-  });
-  h+='<button type="button" class="maq pp '+(pp.estado||'PEND')+'" data-cm="pp">'+
-     '<div><div class="cod">Primera prenda</div><div class="op">Aprobación de Calidad</div></div>'+
-     '<div class="est">'+(Number(pp.rechazos)?'<span style="color:#DC2626">✖ '+pp.rechazos+'</span>':'')+'<span>'+esc(texto(pp.estado))+'</span>'+(pp.min!=null?'<span class="min">'+dur(pp.min)+'</span>':'')+'</div></button>';
-  $('maqs').innerHTML=h;
-  $('tId').textContent=[nomLinea(),'Estilo '+c.estilo,c.grupo,c.op?'OP '+c.op:''].filter(Boolean).join(' · ');
-  $('cTiempo').textContent='Cambio: '+dur(c.min);
-  $('cListas').textContent=listas+' de '+M.length+' aprobadas';
-  $('cEsp').textContent=esp+' en espera';
-  $('cRech').textContent=rech+' rechazos';
-  const L=T.log||[];
-  $('log').innerHTML=L.map(r=>{
-    const inst=(r.min==null);
-    return '<tr><td>'+hhmm(r.inicio)+'</td><td>'+(inst?'—':(r.fin?hhmm(r.fin):'en curso'))+'</td><td><b>'+esc(r.cm_id?r.maquina:'Primera prenda')+'</b></td><td class="colOp">'+esc(r.cm_id?r.operacion:'')+
-           '</td><td>'+esc(texto(r.estado,r.area))+'</td><td>'+(inst?'—':dur(r.min))+'</td></tr>';
+  if(!P) return;
+  $('pLinea').textContent=nomLinea();
+  $('botones').innerHTML=(P.botones||[]).map(b=>{
+    const a=b.abierto, on=!!a;
+    return '<button type="button" class="bot '+esc(b.color)+(on?' on':'')+'" data-b="'+esc(b.codigo)+'" aria-pressed="'+on+'">'+
+      '<span class="ic">'+esc(b.icono)+'</span><span class="nom">'+esc(b.nombre)+(on&&a.estilo?' · '+esc(a.estilo):'')+'</span>'+
+      '<span class="tiempo">'+(on?dur(Number(a.min||0)+extra()):'')+'</span><span class="pista">'+(on?'desde las '+hhmm(a.inicio)+' · toca para terminar':'')+'</span></button>';
   }).join('');
-  $('logVacio').style.display=L.length?'none':'';
-  $('bCerrar').classList.toggle('pri',pp.estado==='LISTA'); $('bCerrar').classList.toggle('rojo',pp.estado!=='LISTA');
-  ver('vTab');
+  const H=P.hoy||[], abiertos={};
+  (P.botones||[]).forEach(b=>{ if(b.abierto&&b.pide_estilo&&!b.abierto.estilo) abiertos[b.abierto.id]=1; });
+  $('hoy').innerHTML=H.map(r=>'<tr><td>'+hhmm(r.inicio)+'</td><td>'+(r.fin?hhmm(r.fin):'en curso')+'</td><td><b>'+esc(r.boton)+'</b>'+(r.estilo?' · estilo '+esc(r.estilo):'')+
+    (abiertos[r.id]?' <button type="button" class="btn" data-estilo="'+r.id+'">Elegir estilo</button>':'')+'</td><td>'+dur(r.fin?r.min:Number(r.min||0)+extra())+'</td></tr>').join('');
+  $('hoyVacio').style.display=H.length?'none':'';
+  ver('vPanel');
 }
-
-/* ===== ventana de botones ===== */
-function bt(cls,e,q,ico,txt,sub,act){
-  return '<button type="button" class="bt '+cls+(act?' act':'')+'" data-e="'+e+'" data-q="'+(q||'')+'"><span class="ic">'+ico+'</span>'+esc(txt)+(sub?'<small>'+esc(sub)+'</small>':'')+'</button>';
-}
-function cab(t,s){ return '<div class="cab"><b>'+esc(t)+'</b><span>'+esc(s||'')+'</span><button type="button" class="cerrar" data-cerrar="1" aria-label="Cerrar">✕</button></div>'; }
-function mostrar(h){ $('hoja').innerHTML=h; $('fondo').classList.add('on'); }
-function cerrar(){ $('fondo').classList.remove('on'); ABIERTA=null; }
-function abrir(cm){
-  if(!PUEDE){ aviso(INI.supervision?'Modo supervisión: no se guarda nada':'No tienes permiso para registrar',true); return; }
-  ABIERTA=cm;
-  if(cm==='pp'){
-    const s=T.pp||{};
-    mostrar(cab('Primera prenda',texto(s.estado))+'<div class="grp">Primera prenda</div><div class="bts c3">'+
-      bt('tra','ENV','',ICO.ENV,'Enviada','a Calidad',s.estado==='ENV')+bt('ok','LISTA','','✔','Aprobada','')+bt('no','RECH','','✖','Rechazada','')+'</div>');
-    return;
-  }
-  const m=(T.maquinas||[]).find(x=>String(x.cm_id)===String(cm)); if(!m){ cerrar(); return; }
-  mostrar(cab(m.maquina,[m.operacion,texto(m.estado,m.area)].filter(Boolean).join(' · '))+
-    '<div class="grp">Trabajando</div><div class="bts c2">'+
-      bt('tra','GRAD','',ICO.GRAD,'Graduando','mecánico',m.estado==='GRAD')+bt('tra','PROB','',ICO.PROB,'Probando','operaria',m.estado==='PROB')+'</div>'+
-    '<div class="grp">Parada, esperando a…</div><div class="bts c5">'+
-      (INI.areas||[]).map(a=>bt('esp','ESP',a.codigo,ICO[a.codigo]||'⏳',a.nombre,'',m.estado==='ESP'&&m.area===a.codigo)).join('')+'</div>'+
-    '<div class="grp">Resultado de la prueba</div><div class="bts c2">'+bt('ok','LISTA','','✔','Aprobada','')+bt('no','RECH','','✖','Rechazada','')+'</div>'+
-    (m.estado?'':'<div class="quitar"><button type="button" data-quitar="'+m.cm_id+'">Quitar esta máquina del cambio</button></div>'));
-}
-$('maqs').addEventListener('click',e=>{ const b=e.target.closest('.maq'); if(b&&!OCUPADO) abrir(b.dataset.cm); });
 
 function aviso(txt,mal,deshacer){
   const a=$('aviso'); $('avTxt').textContent=txt; a.classList.toggle('mal',!!mal); $('avBtn').style.display=deshacer?'':'none';
   a.classList.add('on'); clearTimeout(tAviso); tAviso=setTimeout(()=>{ a.classList.remove('on'); ULTIMO=null; },mal?6000:8000);
 }
-async function tocar(cm,est,area){
-  if(OCUPADO) return; OCUPADO=true;
-  const tile=document.querySelector('.maq[data-cm="'+cm+'"]'); if(tile) tile.classList.add('guardando');
+/* un toque enciende, otro toque apaga: eso es todo */
+$('botones').addEventListener('click',async e=>{
+  const b=e.target.closest('.bot'); if(!b||OCUPADO) return;
+  if(!PUEDE){ aviso(INI.supervision?'Modo supervisión: no se guarda nada':'No tienes permiso para registrar',true); return; }
+  OCUPADO=true; b.classList.add('guardando');
   try{
-    const d=await api('tocar',{cambio_id:T.cambio.id,cm_id:cm==='pp'?null:Number(cm),estado:est,area:area||null});
-    T=d; pintar();
-    if(!d.sin_cambio){
-      ULTIMO=d.evento_id;
-      const m=cm==='pp'?null:(T.maquinas||[]).find(x=>String(x.cm_id)===String(cm));
-      aviso((m?m.maquina:'Primera prenda')+': '+texto(est,area),false,true);
-    }
-  }catch(e){ if(tile) tile.classList.remove('guardando'); aviso('No se guardó: '+e.message,true); }
+    const d=await api('pulsar',{linea_cod:LINEA,boton:b.dataset.b});
+    P=d; T0=Date.now(); pintar(); err('');
+    const bo=(P.botones||[]).find(x=>x.codigo===b.dataset.b)||{};
+    ULTIMO={registro_id:d.registro_id,hecho:d.hecho};
+    aviso((bo.nombre||'')+(d.hecho==='INICIO'?': empezó a las '+hhmm(d.ahora):': terminó a las '+hhmm(d.ahora)),false,true);
+    try{ if(navigator.vibrate) navigator.vibrate(60); }catch(x){}
+    if(d.hecho==='INICIO'&&bo.pide_estilo) abrirEstilos(d.registro_id);
+  }catch(x){ b.classList.remove('guardando'); aviso('No se guardó: '+x.message,true); }
   OCUPADO=false;
-}
+});
 $('avBtn').addEventListener('click',async()=>{
-  const id=ULTIMO; $('aviso').classList.remove('on'); ULTIMO=null; if(!id||OCUPADO) return;
-  OCUPADO=true;
-  try{ T=await api('deshacer',{evento_id:id}); pintar(); aviso('Deshecho',false,false); }
+  const u=ULTIMO; $('aviso').classList.remove('on'); ULTIMO=null; if(!u||OCUPADO) return;
+  OCUPADO=true; cerrarEstilos();
+  try{ P=await api('deshacer',u); T0=Date.now(); pintar(); aviso('Deshecho',false,false); }
   catch(e){ aviso('No se pudo deshacer: '+e.message,true); }
   OCUPADO=false;
 });
 
+/* ===== qué estilo entra: se toca, no se escribe (la lista sale de la base de OPs, lo más reciente primero) ===== */
+function pintarEstilos(){
+  const q=norm($('eBuscar').value), L=(ESTILOS||[]).filter(s=>!q||norm(s.estilo).indexOf(q)>=0).slice(0,q?60:24);
+  $('estilos').innerHTML=L.map(s=>'<button type="button" class="est" data-e="'+esc(s.estilo)+'"><b>'+esc(s.estilo)+'</b><small>'+esc(s.cliente||'')+'</small></button>').join('');
+  $('eVacio').style.display=L.length?'none':'';
+  $('eVacio').textContent=ESTILOS?'Ningún estilo de la base de OPs coincide.':'Cargando estilos…';
+}
+async function abrirEstilos(id){
+  REG_ESTILO=id; $('eBuscar').value=''; pintarEstilos(); $('fondo').classList.add('on');
+  if(!ESTILOS){ try{ const d=await api('estilos'); ESTILOS=d.estilos||[]; }catch(e){ ESTILOS=[]; } pintarEstilos(); }
+}
+function cerrarEstilos(){ $('fondo').classList.remove('on'); REG_ESTILO=null; }
+$('eBuscar').addEventListener('input',pintarEstilos);
+$('eDespues').addEventListener('click',cerrarEstilos);
 $('fondo').addEventListener('click',async e=>{
-  if(e.target.id==='fondo'||e.target.closest('[data-cerrar]')){ cerrar(); return; }
-  const q=e.target.closest('[data-quitar]');
-  if(q){ const id=q.dataset.quitar; cerrar(); try{ T=await api('quitar_maquina',{cambio_id:T.cambio.id,cm_id:Number(id)}); pintar(); aviso('Máquina quitada',false,false); }catch(x){ aviso(x.message,true); } return; }
-  if(e.target.closest('#aOk')){ agregarOk(); return; }
-  if(e.target.closest('#zOk')){ cerrarOk(); return; }
-  const b=e.target.closest('.bt'); if(!b||ABIERTA==null) return;
-  const cm=ABIERTA; cerrar(); tocar(cm,b.dataset.e,b.dataset.q);
+  if(e.target.id==='fondo'){ cerrarEstilos(); return; }
+  const b=e.target.closest('.est'); if(!b||!REG_ESTILO) return;
+  const id=REG_ESTILO; cerrarEstilos();
+  try{ P=await api('poner_estilo',{registro_id:id,estilo:b.dataset.e}); T0=Date.now(); pintar(); aviso('Entra el estilo '+b.dataset.e,false,false); }
+  catch(x){ aviso('No se guardó el estilo: '+x.message,true); }
 });
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') cerrar(); });
+$('hoy').addEventListener('click',e=>{ const b=e.target.closest('[data-estilo]'); if(b&&PUEDE) abrirEstilos(Number(b.dataset.estilo)); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') cerrarEstilos(); });
 
-/* agregar máquina a media marcha */
-$('bAgregar').addEventListener('click',()=>{
-  if(!PUEDE){ aviso('No tienes permiso para registrar',true); return; }
-  ABIERTA=null;
-  mostrar(cab('Agregar máquina','')+
-    '<label class="campo" id="caM">Código de la máquina<input id="aMaq" autocomplete="off" autocapitalize="characters" placeholder="BRA 12"><small class="msj" id="aMsj"></small></label>'+
-    '<label class="campo">Operación<input id="aOp" autocomplete="off" placeholder="Basta de manga 2"></label>'+
-    '<button type="button" class="btn pri" id="aOk" style="width:100%;min-height:52px;font-size:16px">Agregar</button>');
-  $('aMaq').focus();
-});
-async function agregarOk(){
-  const m=$('aMaq').value.trim();
-  if(!m){ $('caM').classList.add('mal'); $('aMsj').textContent='Escribe el código de la máquina.'; return; }
-  try{ T=await api('agregar_maquina',{cambio_id:T.cambio.id,maquina:m,operacion:$('aOp').value.trim()}); cerrar(); pintar(); aviso('Máquina agregada',false,false); }
-  catch(e){ $('caM').classList.add('mal'); $('aMsj').textContent=e.message; }
-}
-/* cerrar el cambio */
-$('bCerrar').addEventListener('click',()=>{
-  if(!PUEDE){ aviso('No tienes permiso para registrar',true); return; }
-  ABIERTA=null;
-  const pp=(T.pp||{}).estado==='LISTA', falta=(T.maquinas||[]).filter(m=>m.estado!=='LISTA').length;
-  mostrar(cab('Cerrar cambio de estilo','Estilo '+T.cambio.estilo)+
-    '<div style="font-size:15px;margin:8px 0 14px">'+(pp?'La primera prenda está aprobada.':'<b style="color:#DC2626">La primera prenda todavía no está aprobada.</b>')+
-    (falta?' '+(falta===1?'Queda 1 máquina':'Quedan '+falta+' máquinas')+' sin aprobar.':'')+' Al cerrar ya no se puede registrar más en este cambio.</div>'+
-    '<div class="bts c2"><button type="button" class="btn" data-cerrar="1" style="min-height:52px">Seguir registrando</button><button type="button" class="btn pri" id="zOk" style="min-height:52px">Cerrar el cambio</button></div>');
-});
-async function cerrarOk(){
-  try{ T=await api('cerrar_cambio',{cambio_id:T.cambio.id}); cerrar(); pintar(); aviso('Cambio de estilo cerrado',false,false); }
-  catch(e){ cerrar(); aviso(e.message,true); }
-}
-
-/* ===== iniciar cambio ===== */
-function leerMaquinas(){
-  return $('nMaq').value.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).map(l=>{
-    const p=l.split(/\t|,|;/); return {maquina:(p.shift()||'').trim(), operacion:p.join(', ').trim()};
-  }).filter(x=>x.maquina);
-}
-let tEst=null;
-function limpiarOps(){ $('nOp').innerHTML=''; $('cOp').style.display='none'; }
-$('nEst').addEventListener('input',()=>{
-  $('cEst').classList.remove('mal'); clearTimeout(tEst); const v=$('nEst').value.trim(); $('nEstInfo').style.color=''; $('nEstInfo').textContent=''; limpiarOps();
-  if(!v) return;
-  tEst=setTimeout(async()=>{ try{ const d=await api('buscar_estilo',{estilo:v}); if($('nEst').value.trim()!==v) return;
-    if(!d.existe){ $('nEstInfo').textContent='Ese estilo no está en la base de OPs; se puede seguir igual.'; return; }
-    const O=d.ops||[], G=[...new Set(O.map(o=>o.grupo).filter(Boolean))];
-    $('nEstInfo').textContent=G.join(' · ');
-    $('nOp').innerHTML='<option value="">Sin elegir</option>'+O.map(o=>'<option value="'+esc(o.op)+'">'+esc(o.op+(o.grupo?' · '+o.grupo:''))+'</option>').join('');
-    $('cOp').style.display='';
-  }catch(e){} },500);
-});
-$('nMaq').addEventListener('input',()=>{ const n=leerMaquinas().length; $('nMsj').style.color='#5F726C'; $('nMsj').textContent=n?n+(n===1?' máquina':' máquinas'):''; });
-$('bIniciar').addEventListener('click',async()=>{
-  if(!PUEDE){ aviso(INI.supervision?'Modo supervisión: no se guarda nada':'No tienes permiso para registrar',true); return; }
-  const est=$('nEst').value.trim(), op=$('nOp').value||'', M=leerMaquinas();
-  if(!est){ $('cEst').classList.add('mal'); $('nEstInfo').style.color='#DC2626'; $('nEstInfo').textContent='Escribe el estilo que entra.'; $('nEst').focus(); return; }
-  if(OCUPADO) return;
-  OCUPADO=true; $('bIniciar').disabled=true;
-  try{ T=await api('iniciar_cambio',{linea_cod:LINEA,estilo:est,op:op,maquinas:M}); $('nEst').value=''; limpiarOps(); $('nMaq').value=''; $('nEstInfo').textContent=''; $('nMsj').textContent=''; err(''); pintar(); }
-  catch(e){ err('No se pudo iniciar el cambio: '+e.message+' Lo escrito sigue aquí.'); }
-  OCUPADO=false; $('bIniciar').disabled=false;
-});
-
-/* el aviso de versión nueva espera si hay algo a medias */
-window.lsTrabajoPendiente=function(){ return $('fondo').classList.contains('on')||!!$('nMaq').value.trim()||!!$('nEst').value.trim(); };
-/* otras tablets o celulares de la misma línea se ponen al día solas */
-setInterval(()=>{ if(LINEA&&T&&!OCUPADO&&!$('fondo').classList.contains('on')&&document.visibilityState==='visible') cargar(true); },20000);
+window.lsTrabajoPendiente=function(){ return $('fondo').classList.contains('on'); };
+/* otras tablets o celulares de la misma línea se ponen al día solas, y los relojes avanzan */
+setInterval(()=>{ if(LINEA&&P&&!OCUPADO&&!$('fondo').classList.contains('on')&&document.visibilityState==='visible') cargar(true); },15000);
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&LINEA&&P&&!OCUPADO&&!$('fondo').classList.contains('on')) cargar(true); });
 iniciar();
 </script>
 <!-- ===== lives-franja v6.4 (2026-11-10: con mouse, las barras de filtros que se desplazan de lado muestran una manito y se arrastran) · v6.3 (2026-11-10: en celular la barra de filtros ya no se queda fija) · v6.2 (2026-10-27: pestañas ya no se meten en la barra al bajar y subir) · v6.1 · 2026-10-09 · sin franja de estado arriba y sin la palabra "Supabase" (común a todas las herramientas).
