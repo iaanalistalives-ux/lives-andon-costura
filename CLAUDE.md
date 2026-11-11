@@ -28,6 +28,11 @@ Registros en `registro_sql/`: `AD03_andon_costura_botones_fijos.sql` es el vigen
 ## Quién puede registrar
 Libre durante las pruebas (`and_parametros.REGISTRO_LIBRE` = SI). Rodrigo (rcamogliano): supervisión, ve todo y no guarda. Lo registrado se firma con `?usuario=` o con «Identificarme» (opcional fuera del portal). A Sistemas: `and_puede` es la pieza que reemplazan con su seguridad.
 
+## Regla de uso acordada con Christian (11/11/2026)
+- Se toca el botón de la CAUSA (Falta material, Paro de máquina, Duda de ficha). «Llamar supervisor» es para cuando el problema no es ninguno de los otros.
+- Botones distintos pueden estar encendidos a la vez (ej. Cambio de estilo + Paro de máquina); sus minutos se superponen, no se suman.
+- El mismo botón no se enciende dos veces en una línea: dos máquinas paradas a la vez cuentan como un solo paro. Se dejó así; si en planta pasa seguido, el botón de paro tendría que llevar la cuenta.
+
 ## Límites conocidos
 - Depende de que alguien toque, y de que vuelva a tocar para terminar: un botón olvidado encendido infla los minutos (el reloj a la vista ayuda a notarlo).
 - No se sabe qué máquina paró ni el motivo fino: se decidió no pedirlo para no cansar a quien toca.
