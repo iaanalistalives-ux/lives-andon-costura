@@ -844,7 +844,7 @@ function pintar(){
   const V=P.vigente||null;
   $('pLinea').textContent=nomLinea()+(V&&V.estilo?' · Estilo '+V.estilo:'');
   const Z=P.pausa||null;
-  $('pEtapa').textContent=Z?(Z.codigo==='FIN'?'Día finalizado':'En '+String(Z.nombre||'pausa').toLowerCase()):(!V?'Sin iniciar':(V.etapa==='CAMBIO'?'En cambio de estilo':'En producción'));
+  $('pEtapa').textContent=Z?('En '+String(Z.nombre||'pausa').toLowerCase()):(!V?'Sin iniciar':(V.etapa==='CAMBIO'?'En cambio de estilo':'En producción'));
   $('pEtapa').className='chip'+(Z?' pausa':(!V?'':(V.etapa==='CAMBIO'?' cambio':' prod')));
   $('bEstilo').style.display=(V&&!V.estilo&&PUEDE)?'':'none';
   const boton=b=>{
@@ -862,10 +862,11 @@ function pintar(){
       '<span class="tiempo">'+(on?dur(Number(a.min||0)+extraDe(b.pausa)):'')+'</span><span class="pista">'+esc(pista)+'</span></button>';
   };
   const B=P.botones||[];
-  $('botones').innerHTML=B.filter(b=>!b.pausa).map(boton).join('');
-  $('pausas').innerHTML=B.filter(b=>b.pausa).map(boton).join('');
+  /* abajo y más pequeños: la pausa (Almuerzo) y el cierre (Finalizar día) */
+  $('botones').innerHTML=B.filter(b=>!(b.pausa||b.cierre)).map(boton).join('');
+  $('pausas').innerHTML=B.filter(b=>b.pausa||b.cierre).map(boton).join('');
   const H=P.hoy||[];
-  $('hoy').innerHTML=H.map(r=>'<tr><td>'+hhmm(r.inicio)+'</td><td>'+(r.fin?hhmm(r.fin):'en curso')+'</td><td><b>'+esc(r.boton==='Cambio de estilo'&&r.fin&&r.fin===r.inicio?'Inicio de operación':r.boton)+'</b>'+(r.estilo?' · estilo '+esc(r.estilo):'')+(r.pausa?'':(r.etapa==='PRODUCCION'?' · en producción':(r.etapa==='CAMBIO'?' · en el cambio':'')))+'</td><td>'+dur(r.fin?r.min:Number(r.min||0)+extraDe(r.pausa))+'</td></tr>').join('');
+  $('hoy').innerHTML=H.map(r=>'<tr><td>'+hhmm(r.inicio)+'</td><td>'+(r.fin?hhmm(r.fin):'en curso')+'</td><td><b>'+esc(r.boton==='Cambio de estilo'&&r.fin&&r.fin===r.inicio?'Inicio de operación':r.boton)+'</b>'+(r.estilo?' · estilo '+esc(r.estilo):'')+((r.pausa||r.cierre)?'':(r.etapa==='PRODUCCION'?' · en producción':(r.etapa==='CAMBIO'?' · en el cambio':'')))+'</td><td>'+(r.cierre?'':dur(r.fin?r.min:Number(r.min||0)+extraDe(r.pausa)))+'</td></tr>').join('');
   $('hoyVacio').style.display=H.length?'none':'';
   ver('vPanel');
 }
@@ -887,6 +888,7 @@ async function tocar(e){
     ULTIMO={registro_id:d.registro_id,hecho:d.hecho};
     const enProd=!!(d.vigente&&d.vigente.etapa==='PRODUCCION');
     aviso(bo.pide_estilo?((enProd?'Inicio de operación':'Cambio de estilo')+' a las '+hhmm(d.ahora))
+         :bo.cierre?('Día finalizado a las '+hhmm(d.ahora))
          :bo.pausa?((d.hecho==='INICIO'?bo.nombre:(bo.nombre_encendido||bo.nombre))+' a las '+hhmm(d.ahora))
                         :((bo.nombre||'')+(d.hecho==='INICIO'?': empezó a las '+hhmm(d.ahora):': terminó a las '+hhmm(d.ahora))),false,true);
     try{ if(navigator.vibrate) navigator.vibrate(60); }catch(x){}
