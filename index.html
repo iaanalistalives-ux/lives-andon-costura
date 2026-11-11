@@ -637,6 +637,10 @@ body{margin:0;background:var(--warm-light);color:#333;font-family:Calibri,Arial,
 .fijo{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:6px 8px 6px 14px;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
 .fijo .id{font-weight:700;font-size:18px;color:var(--petrol);margin-right:auto;}
 .fijo .btn{min-height:36px;padding:4px 12px;font-size:13px;}
+.fijo{flex-wrap:wrap;}
+.chip{font-size:12.5px;font-weight:700;padding:4px 10px;border-radius:20px;background:var(--warm-light);color:var(--stone);white-space:nowrap;}
+.chip.cambio{background:#EAF0F3;color:var(--slate);}
+.chip.prod{background:#E7F4EF;color:var(--sage);}
 
 /* Los botones fijos: siempre los mismos, siempre en el mismo lugar */
 .botones{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
@@ -707,7 +711,7 @@ td .btn{min-height:34px;padding:2px 10px;font-size:12.5px;}
 
   <!-- los botones fijos de la línea -->
   <div id="vPanel" style="display:none">
-    <div class="fijo lsand-menu" data-ls-fijo><span class="id" id="pLinea"></span><button type="button" class="btn" id="bLinea">Cambiar línea</button></div>
+    <div class="fijo lsand-menu" data-ls-fijo><span class="id" id="pLinea"></span><span class="chip" id="pEtapa"></span><button type="button" class="btn" id="bEstilo" style="display:none">Elegir estilo</button><button type="button" class="btn" id="bLinea">Cambiar línea</button></div>
     <div class="botones lsand-menu" id="botones"></div>
     <div class="panel lsand-menu"><span class="tira"></span>
       <div class="tscroll"><table><thead><tr><th>Inicio</th><th>Fin</th><th>Qué pasó</th><th>Minutos</th></tr></thead><tbody id="hoy"></tbody></table></div>
@@ -821,7 +825,12 @@ async function cargar(silencio){
 function extra(){ return Math.floor((Date.now()-T0)/60000); }
 function pintar(){
   if(!P) return;
-  $('pLinea').textContent=nomLinea();
+  /* la línea siempre está en una de tres situaciones: sin estilo, en cambio de estilo, o produciendo el estilo */
+  const V=P.vigente||null;
+  $('pLinea').textContent=nomLinea()+(V&&V.estilo?' · Estilo '+V.estilo:'');
+  $('pEtapa').textContent=!V?'Sin estilo en la línea':(V.etapa==='CAMBIO'?'En cambio de estilo':'En producción');
+  $('pEtapa').className='chip'+(!V?'':(V.etapa==='CAMBIO'?' cambio':' prod'));
+  $('bEstilo').style.display=(V&&!V.estilo&&PUEDE)?'':'none';
   $('botones').innerHTML=(P.botones||[]).map(b=>{
     const a=b.abierto, on=!!a;
     const bloq=!on&&!!b.bloqueado;      /* gris hasta que esté encendido el botón que requiere (Cambio de estilo) */
@@ -829,10 +838,8 @@ function pintar(){
       '<span class="ic">'+esc(b.icono)+'</span><span class="nom">'+esc(b.nombre)+(on&&a.estilo?' · '+esc(a.estilo):'')+'</span>'+
       '<span class="tiempo">'+(on?dur(Number(a.min||0)+extra()):'')+'</span><span class="pista">'+(on?'desde las '+hhmm(a.inicio)+' · toca para terminar':'')+'</span></button>';
   }).join('');
-  const H=P.hoy||[], abiertos={};
-  (P.botones||[]).forEach(b=>{ if(b.abierto&&b.pide_estilo&&!b.abierto.estilo) abiertos[b.abierto.id]=1; });
-  $('hoy').innerHTML=H.map(r=>'<tr><td>'+hhmm(r.inicio)+'</td><td>'+(r.fin?hhmm(r.fin):'en curso')+'</td><td><b>'+esc(r.boton)+'</b>'+(r.estilo?' · estilo '+esc(r.estilo):'')+
-    (abiertos[r.id]?' <button type="button" class="btn" data-estilo="'+r.id+'">Elegir estilo</button>':'')+'</td><td>'+dur(r.fin?r.min:Number(r.min||0)+extra())+'</td></tr>').join('');
+  const H=P.hoy||[];
+  $('hoy').innerHTML=H.map(r=>'<tr><td>'+hhmm(r.inicio)+'</td><td>'+(r.fin?hhmm(r.fin):'en curso')+'</td><td><b>'+esc(r.boton)+'</b>'+(r.estilo?' · estilo '+esc(r.estilo):'')+(r.etapa==='PRODUCCION'?' · en producción':(r.etapa==='CAMBIO'?' · en el cambio':''))+'</td><td>'+dur(r.fin?r.min:Number(r.min||0)+extra())+'</td></tr>').join('');
   $('hoyVacio').style.display=H.length?'none':'';
   ver('vPanel');
 }
@@ -887,7 +894,7 @@ $('fondo').addEventListener('click',async e=>{
   try{ P=await api('poner_estilo',{registro_id:id,estilo:b.dataset.e}); T0=Date.now(); pintar(); aviso('Entra el estilo '+b.dataset.e,false,false); }
   catch(x){ aviso('No se guardó el estilo: '+x.message,true); }
 });
-$('hoy').addEventListener('click',e=>{ const b=e.target.closest('[data-estilo]'); if(b&&PUEDE) abrirEstilos(Number(b.dataset.estilo)); });
+$('bEstilo').addEventListener('click',()=>{ if(P&&P.vigente&&PUEDE) abrirEstilos(P.vigente.id); });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') cerrarEstilos(); });
 
 window.lsTrabajoPendiente=function(){ return $('fondo').classList.contains('on'); };
