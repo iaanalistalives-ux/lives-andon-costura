@@ -7,7 +7,8 @@ Panel de BOTONES FIJOS por línea de costura, en celular o tablet (no hay botone
 - `index.html` — **panel de la línea** (única pantalla por ahora; link directo, se usa en planta).
   - Elige la línea una sola vez (queda en el equipo; `?linea=4` o `?linea=LIN-0003` la fija y ya no pregunta).
   - 6 botones, siempre en el mismo lugar: Cambio de estilo, Paro de máquina, Llamar supervisor, Llamar Calidad, Falta material, Duda de ficha. Salen de la tabla `and_botones`: se agregan, quitan o renombran ahí, sin tocar la pantalla.
-  - Varios botones pueden estar encendidos a la vez. «Deshacer» 8 segundos tras cada toque (quita el inicio o vuelve a encender).
+  - «Cambio de estilo» manda (pedido de Christian, 11/11/2026): los otros 5 botones salen grises y no se pueden tocar hasta que esté encendido (`and_botones.requiere`); al tocarlos avisa «Primero enciende Cambio de estilo». Al apagar «Cambio de estilo», lo que siga encendido se apaga solo a esa hora (`cierre_auto`). Cada paro o llamada queda ligado a su cambio (`padre_id`) y hereda su estilo. Consecuencia: fuera de un cambio de estilo no se registra nada.
+  - Con el cambio encendido, varios botones pueden estar encendidos a la vez. «Deshacer» 8 segundos tras cada toque (quita el inicio o vuelve a encender).
   - Al encender «Cambio de estilo» sale la ventana «¿Qué estilo entra?» con los estilos de la base de OPs (`ops`), los 24 más recientes como botones y un buscador «Buscar estilo…» (teclado numérico). Se puede tocar «Después» y elegirlo luego con «Elegir estilo» en la lista de hoy.
   - Abajo, los registros de hoy de esa línea (inicio, fin, qué pasó, minutos).
   - Se pone al día sola cada 15 segundos (varios equipos en la misma línea).
@@ -15,7 +16,7 @@ Panel de BOTONES FIJOS por línea de costura, en celular o tablet (no hay botone
 - Pendiente (segunda entrega): dashboard de análisis con Excel LIVES (minutos por botón, por línea y por día; duración de cada cambio de estilo). La vista `publico_and_registros` ya existe para eso.
 
 ## Base de datos (Supabase lives-datos) — prefijo `and_`
-Registros en `registro_sql/`: `AD03_andon_costura_botones_fijos.sql` es el vigente (resultado final). `AD01` y `AD02` son el diseño anterior por máquina, ya borrado de la base; se guardan solo como historia.
+Registros en `registro_sql/`: `AD03_andon_costura_botones_fijos.sql` (panel de botones fijos, resultado final de las migraciones ad03 y ad04) y `AD04_andon_costura_botones_requieren_cambio.sql` (migración ad05: los botones exigen el cambio de estilo encendido) son los vigentes. `AD01` y `AD02` son el diseño anterior por máquina, ya borrado de la base; se guardan solo como historia.
 - `and_botones` (catálogo con código: CAMBIO, PARO, SUP, CAL, MAT, FICHA; color azul/rojo/ambar; `pide_estilo`).
 - `and_registros` (línea por código de `cat_lineas`, botón, inicio, fin, usuario de inicio y de fin, `estilo` si el botón lo pide; deshacer un inicio = `anulado`). Solo un registro en curso por línea y botón.
 - `and_parametros` (`REGISTRO_LIBRE`, `ALMUERZO_INICIO`, `ALMUERZO_FIN`).
@@ -31,6 +32,7 @@ Libre durante las pruebas (`and_parametros.REGISTRO_LIBRE` = SI). Rodrigo (rcamo
 ## Regla de uso acordada con Christian (11/11/2026)
 - Se toca el botón de la CAUSA (Falta material, Paro de máquina, Duda de ficha). «Llamar supervisor» es para cuando el problema no es ninguno de los otros.
 - Botones distintos pueden estar encendidos a la vez (ej. Cambio de estilo + Paro de máquina); sus minutos se superponen, no se suman.
+- Nada se marca sin «Cambio de estilo» encendido (ver arriba).
 - El mismo botón no se enciende dos veces en una línea: dos máquinas paradas a la vez cuentan como un solo paro. Se dejó así; si en planta pasa seguido, el botón de paro tendría que llevar la cuenta.
 
 ## Límites conocidos
