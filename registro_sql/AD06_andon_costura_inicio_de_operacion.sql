@@ -1,0 +1,25 @@
+-- Ad06 andon costura inicio de operacion · 11/11/2026
+-- Lógica definida por Christian: el botón principal alterna de nombre.
+--   Línea sin iniciar:        dice «Inicio de operación»; los otros 5 botones desactivados.
+--   Lo presionan:             la línea queda EN PRODUCCIÓN, todo se activa y el botón pasa a decir «Cambio de estilo».
+--   Presionan «Cambio de estilo»: entra otro estilo (etapa CAMBIO); el botón vuelve a decir «Inicio de operación»,
+--                             y los otros 5 siguen activos: lo que se marque es tiempo muerto del cambio.
+--   Presionan «Inicio de operación»: la línea vuelve a producción con el estilo nuevo.
+-- SOLO REGISTRO: ya fue ejecutado por Claude en Supabase (migración ad07_andon_costura_inicio_de_operacion). Guardar sin Run.
+-- El nombre del botón lo decide la pantalla según la etapa; en and_botones sigue siendo el código CAMBIO.
+
+-- and_api, cambios respecto de Ad05 (texto completo en la base):
+-- 1) 'pulsar' sobre el botón principal cuando la línea NO tiene estilo (primer «Inicio de operación»):
+--      el registro nace con fin = inicio (no hay cambio que medir) y el estilo entra directo a PRODUCCION.
+--      insert into and_registros(linea_cod,boton_cod,usuario_inicio,fin,usuario_fin)
+--        values (v_linea,v_boton,v_usuario, case when v_padre is null then now() end, case when v_padre is null then v_usuario end);
+--      (v_padre = id del estilo anterior, si lo había; con estilo anterior es un cambio de estilo y fin queda vacío)
+-- 2) 'deshacer' de ese primer inicio: permitido aunque tenga fin (cuando fin = inicio).
+-- 3) Mensaje al tocar un botón sin haber iniciado: «Primero toca «Inicio de operación»».
+
+-- Para el análisis (vista publico_and_registros):
+--   primer inicio de la línea          = registro CAMBIO con fin = inicio
+--   duración de un cambio de estilo    = registro CAMBIO: inicio (presionan «Cambio de estilo») → fin (presionan «Inicio de operación»)
+--   tiempo muerto dentro del cambio    = registros con ese padre_id y etapa = 'CAMBIO'
+--   paros y esperas en producción      = registros con ese padre_id y etapa = 'PRODUCCION'
+--   tiempo del estilo en la línea      = inicio del CAMBIO → cerrado

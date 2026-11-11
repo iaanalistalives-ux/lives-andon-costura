@@ -722,7 +722,7 @@ td .btn{min-height:34px;padding:2px 10px;font-size:12.5px;}
   <div class="pie lsand-menu"><button class="btn" id="btnQuien" type="button" style="display:none"></button></div>
 </div>
 <div class="fondo" id="fondo"><div class="hoja lsand-menu">
-  <div class="cab"><b>¿Qué estilo entra?</b><button type="button" class="btn" id="eDespues">Después</button></div>
+  <div class="cab"><b id="eTit">¿Qué estilo entra?</b><button type="button" class="btn" id="eDespues">Después</button></div>
   <input id="eBuscar" type="search" inputmode="numeric" autocomplete="off" placeholder="Buscar estilo…" data-ls-fijo>
   <div class="estilos" id="estilos"></div>
   <div class="vacio" id="eVacio" style="display:none">Ningún estilo de la base de OPs coincide.</div>
@@ -828,18 +828,24 @@ function pintar(){
   /* la línea siempre está en una de tres situaciones: sin estilo, en cambio de estilo, o produciendo el estilo */
   const V=P.vigente||null;
   $('pLinea').textContent=nomLinea()+(V&&V.estilo?' · Estilo '+V.estilo:'');
-  $('pEtapa').textContent=!V?'Sin estilo en la línea':(V.etapa==='CAMBIO'?'En cambio de estilo':'En producción');
+  $('pEtapa').textContent=!V?'Sin iniciar':(V.etapa==='CAMBIO'?'En cambio de estilo':'En producción');
   $('pEtapa').className='chip'+(!V?'':(V.etapa==='CAMBIO'?' cambio':' prod'));
   $('bEstilo').style.display=(V&&!V.estilo&&PUEDE)?'':'none';
   $('botones').innerHTML=(P.botones||[]).map(b=>{
     const a=b.abierto, on=!!a;
+    /* El botón principal cambia de nombre según lo que hará al tocarlo:
+       «Inicio de operación» si la línea no ha iniciado o está en cambio de estilo; «Cambio de estilo» si está en producción. */
+    const principal=!!b.pide_estilo, enProd=!!(V&&V.etapa==='PRODUCCION');
+    const nom=principal?(enProd?'Cambio de estilo':'Inicio de operación'):b.nombre;
+    const ico=principal?(enProd?b.icono:'▶️'):b.icono;
+    const pista=!on?'':(principal?'en cambio de estilo desde las '+hhmm(a.inicio)+' · toca cuando la línea esté lista':'desde las '+hhmm(a.inicio)+' · toca para terminar');
     const bloq=!on&&!!b.bloqueado;      /* gris hasta que esté encendido el botón que requiere (Cambio de estilo) */
     return '<button type="button" class="bot '+esc(b.color)+(on?' on':'')+(bloq?' bloq':'')+'" data-b="'+esc(b.codigo)+'" aria-pressed="'+on+'"'+(bloq?' data-req="'+esc(b.requiere||'')+'"':'')+'>'+
-      '<span class="ic">'+esc(b.icono)+'</span><span class="nom">'+esc(b.nombre)+(on&&a.estilo?' · '+esc(a.estilo):'')+'</span>'+
-      '<span class="tiempo">'+(on?dur(Number(a.min||0)+extra()):'')+'</span><span class="pista">'+(on?'desde las '+hhmm(a.inicio)+' · toca para terminar':'')+'</span></button>';
+      '<span class="ic">'+esc(ico)+'</span><span class="nom">'+esc(nom)+'</span>'+
+      '<span class="tiempo">'+(on?dur(Number(a.min||0)+extra()):'')+'</span><span class="pista">'+esc(pista)+'</span></button>';
   }).join('');
   const H=P.hoy||[];
-  $('hoy').innerHTML=H.map(r=>'<tr><td>'+hhmm(r.inicio)+'</td><td>'+(r.fin?hhmm(r.fin):'en curso')+'</td><td><b>'+esc(r.boton)+'</b>'+(r.estilo?' · estilo '+esc(r.estilo):'')+(r.etapa==='PRODUCCION'?' · en producción':(r.etapa==='CAMBIO'?' · en el cambio':''))+'</td><td>'+dur(r.fin?r.min:Number(r.min||0)+extra())+'</td></tr>').join('');
+  $('hoy').innerHTML=H.map(r=>'<tr><td>'+hhmm(r.inicio)+'</td><td>'+(r.fin?hhmm(r.fin):'en curso')+'</td><td><b>'+esc(r.boton==='Cambio de estilo'&&r.fin&&r.fin===r.inicio?'Inicio de operación':r.boton)+'</b>'+(r.estilo?' · estilo '+esc(r.estilo):'')+(r.etapa==='PRODUCCION'?' · en producción':(r.etapa==='CAMBIO'?' · en el cambio':''))+'</td><td>'+dur(r.fin?r.min:Number(r.min||0)+extra())+'</td></tr>').join('');
   $('hoyVacio').style.display=H.length?'none':'';
   ver('vPanel');
 }
@@ -852,16 +858,18 @@ function aviso(txt,mal,deshacer){
 $('botones').addEventListener('click',async e=>{
   const b=e.target.closest('.bot'); if(!b||OCUPADO) return;
   if(!PUEDE){ aviso(INI.supervision?'Modo supervisión: no se guarda nada':'No tienes permiso para registrar',true); return; }
-  if(b.classList.contains('bloq')){ aviso('Primero enciende «'+(b.dataset.req||'Cambio de estilo')+'»',true); return; }
+  if(b.classList.contains('bloq')){ aviso('Primero toca «Inicio de operación»',true); return; }
   OCUPADO=true; b.classList.add('guardando');
   try{
     const d=await api('pulsar',{linea_cod:LINEA,boton:b.dataset.b});
     P=d; T0=Date.now(); pintar(); err('');
     const bo=(P.botones||[]).find(x=>x.codigo===b.dataset.b)||{};
     ULTIMO={registro_id:d.registro_id,hecho:d.hecho};
-    aviso((bo.nombre||'')+(d.hecho==='INICIO'?': empezó a las '+hhmm(d.ahora):': terminó a las '+hhmm(d.ahora)),false,true);
+    const enProd=!!(d.vigente&&d.vigente.etapa==='PRODUCCION');
+    aviso(bo.pide_estilo?((enProd?'Inicio de operación':'Cambio de estilo')+' a las '+hhmm(d.ahora))
+                        :((bo.nombre||'')+(d.hecho==='INICIO'?': empezó a las '+hhmm(d.ahora):': terminó a las '+hhmm(d.ahora))),false,true);
     try{ if(navigator.vibrate) navigator.vibrate(60); }catch(x){}
-    if(d.hecho==='INICIO'&&bo.pide_estilo) abrirEstilos(d.registro_id);
+    if(d.hecho==='INICIO'&&bo.pide_estilo) abrirEstilos(d.registro_id,enProd?'¿Qué estilo está en la línea?':'¿Qué estilo entra?');
   }catch(x){ b.classList.remove('guardando'); aviso('No se guardó: '+x.message,true); }
   OCUPADO=false;
 });
@@ -880,8 +888,8 @@ function pintarEstilos(){
   $('eVacio').style.display=L.length?'none':'';
   $('eVacio').textContent=ESTILOS?'Ningún estilo de la base de OPs coincide.':'Cargando estilos…';
 }
-async function abrirEstilos(id){
-  REG_ESTILO=id; $('eBuscar').value=''; pintarEstilos(); $('fondo').classList.add('on');
+async function abrirEstilos(id,titulo){
+  REG_ESTILO=id; $('eTit').textContent=titulo||'¿Qué estilo entra?'; $('eBuscar').value=''; pintarEstilos(); $('fondo').classList.add('on');
   if(!ESTILOS){ try{ const d=await api('estilos'); ESTILOS=d.estilos||[]; }catch(e){ ESTILOS=[]; } pintarEstilos(); }
 }
 function cerrarEstilos(){ $('fondo').classList.remove('on'); REG_ESTILO=null; }
@@ -894,7 +902,7 @@ $('fondo').addEventListener('click',async e=>{
   try{ P=await api('poner_estilo',{registro_id:id,estilo:b.dataset.e}); T0=Date.now(); pintar(); aviso('Entra el estilo '+b.dataset.e,false,false); }
   catch(x){ aviso('No se guardó el estilo: '+x.message,true); }
 });
-$('bEstilo').addEventListener('click',()=>{ if(P&&P.vigente&&PUEDE) abrirEstilos(P.vigente.id); });
+$('bEstilo').addEventListener('click',()=>{ if(P&&P.vigente&&PUEDE) abrirEstilos(P.vigente.id,P.vigente.etapa==='PRODUCCION'?'¿Qué estilo está en la línea?':'¿Qué estilo entra?'); });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') cerrarEstilos(); });
 
 window.lsTrabajoPendiente=function(){ return $('fondo').classList.contains('on'); };
