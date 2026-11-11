@@ -651,11 +651,11 @@ body{margin:0;background:var(--warm-light);color:#333;font-family:Calibri,Arial,
 .panel .tira{position:absolute;left:0;right:0;top:0;height:4px;background:var(--slate);}
 .panel .tira.resultado{background:var(--sage);}
 .campo{display:block;font-size:13px;font-weight:700;color:var(--stone);margin-bottom:12px;}
-.campo input,.campo textarea{display:block;width:100%;margin-top:4px;font-family:inherit;font-size:17px;color:#333;
+.campo input,.campo textarea,.campo select{display:block;width:100%;margin-top:4px;font-family:inherit;font-size:17px;color:#333;
   border:1px solid var(--warm);border-radius:10px;padding:10px 12px;min-height:46px;background:#fff;}
 .campo textarea{min-height:220px;font-size:15px;line-height:1.5;}
 .campo small{display:block;font-weight:400;margin-top:4px;font-size:12.5px;}
-.campo.mal input,.campo.mal textarea{border-color:var(--rose);background:#FFF7F7;}
+.campo.mal input,.campo.mal textarea,.campo.mal select{border-color:var(--rose);background:#FFF7F7;}
 .campo .msj{color:var(--rose);}
 .nuevo{max-width:760px;margin:0 auto;}
 
@@ -743,13 +743,16 @@ td{padding:7px 6px;border-bottom:1px solid var(--warm-light);}
   <div id="vNuevo" style="display:none">
     <div class="fijo" data-ls-fijo><span class="id" id="nLinea"></span><button type="button" class="btn" data-cambiar-linea="1">Cambiar línea</button></div>
     <div class="panel nuevo"><span class="tira resultado"></span>
-      <label class="campo" id="cOp">OP que entra
-        <input id="nOp" inputmode="numeric" autocomplete="off" enterkeyhint="next">
-        <small id="nOpInfo"></small>
+      <label class="campo" id="cEst">Estilo que entra
+        <input id="nEst" autocomplete="off" autocapitalize="characters" enterkeyhint="done">
+        <small id="nEstInfo"></small>
       </label>
-      <label class="campo" id="cMaq">Máquinas del estilo
+      <label class="campo" id="cOp" style="display:none">OP (opcional)
+        <select id="nOp"></select>
+      </label>
+      <label class="campo" id="cMaq">Máquinas del estilo (opcional)
         <textarea id="nMaq" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="CRA 08, Preparado de etiqueta&#10;BRA 06, Basta de manga 1&#10;RM4 38, Pegado de cuello"></textarea>
-        <small>Una por renglón: código de la máquina, coma y la operación. También se puede pegar desde Excel (dos columnas).</small>
+        <small>Se puede dejar vacío y agregar las máquinas después. Una por renglón: código de la máquina, coma y la operación. También se puede pegar desde Excel (dos columnas).</small>
         <small class="msj" id="nMsj"></small>
       </label>
       <button type="button" class="btn pri" id="bIniciar" style="width:100%;min-height:52px;font-size:16px">Iniciar cambio de estilo</button>
@@ -764,10 +767,10 @@ td{padding:7px 6px;border-bottom:1px solid var(--warm-light);}
       <button type="button" class="btn" data-cambiar-linea="1">Cambiar línea</button>
     </div>
     <div class="maqs" id="maqs"></div>
-    <div class="panel"><span class="tira"></span>
-      <div class="acc"><button type="button" class="btn" id="bAgregar">＋ Agregar máquina</button><button type="button" class="btn rojo" id="bCerrar">Cerrar cambio de estilo</button></div>
+    <div class="panel lsand-menu"><span class="tira"></span>
+      <div class="acc lsand-menu"><button type="button" class="btn" id="bAgregar">＋ Agregar máquina</button><button type="button" class="btn rojo" id="bCerrar">Cerrar cambio de estilo</button></div>
     </div>
-    <div class="panel"><span class="tira"></span>
+    <div class="panel lsand-menu"><span class="tira"></span>
       <div class="tscroll"><table><thead><tr><th>Inicio</th><th>Fin</th><th>Máquina</th><th class="colOp">Operación</th><th>Qué pasó</th><th>Minutos</th></tr></thead><tbody id="log"></tbody></table></div>
       <div class="vacio" id="logVacio" style="display:none">Todavía no hay registros en este cambio.</div>
     </div>
@@ -890,7 +893,7 @@ function pintar(){
      '<div><div class="cod">Primera prenda</div><div class="op">Aprobación de Calidad</div></div>'+
      '<div class="est">'+(Number(pp.rechazos)?'<span style="color:#DC2626">✖ '+pp.rechazos+'</span>':'')+'<span>'+esc(texto(pp.estado))+'</span>'+(pp.min!=null?'<span class="min">'+dur(pp.min)+'</span>':'')+'</div></button>';
   $('maqs').innerHTML=h;
-  $('tId').textContent=[nomLinea(),'OP '+c.op,c.grupo].filter(Boolean).join(' · ');
+  $('tId').textContent=[nomLinea(),'Estilo '+c.estilo,c.grupo,c.op?'OP '+c.op:''].filter(Boolean).join(' · ');
   $('cTiempo').textContent='Cambio: '+dur(c.min);
   $('cListas').textContent=listas+' de '+M.length+' aprobadas';
   $('cEsp').textContent=esp+' en espera';
@@ -991,9 +994,9 @@ $('bCerrar').addEventListener('click',()=>{
   if(!PUEDE){ aviso('No tienes permiso para registrar',true); return; }
   ABIERTA=null;
   const pp=(T.pp||{}).estado==='LISTA', falta=(T.maquinas||[]).filter(m=>m.estado!=='LISTA').length;
-  mostrar(cab('Cerrar cambio de estilo','OP '+T.cambio.op)+
+  mostrar(cab('Cerrar cambio de estilo','Estilo '+T.cambio.estilo)+
     '<div style="font-size:15px;margin:8px 0 14px">'+(pp?'La primera prenda está aprobada.':'<b style="color:#DC2626">La primera prenda todavía no está aprobada.</b>')+
-    (falta?' Quedan '+falta+' máquinas sin aprobar.':'')+' Al cerrar ya no se puede registrar más en este cambio.</div>'+
+    (falta?' '+(falta===1?'Queda 1 máquina':'Quedan '+falta+' máquinas')+' sin aprobar.':'')+' Al cerrar ya no se puede registrar más en este cambio.</div>'+
     '<div class="bts c2"><button type="button" class="btn" data-cerrar="1" style="min-height:52px">Seguir registrando</button><button type="button" class="btn pri" id="zOk" style="min-height:52px">Cerrar el cambio</button></div>');
 });
 async function cerrarOk(){
@@ -1007,28 +1010,33 @@ function leerMaquinas(){
     const p=l.split(/\t|,|;/); return {maquina:(p.shift()||'').trim(), operacion:p.join(', ').trim()};
   }).filter(x=>x.maquina);
 }
-let tOp=null;
-$('nOp').addEventListener('input',()=>{
-  $('cOp').classList.remove('mal'); clearTimeout(tOp); const v=$('nOp').value.trim(); $('nOpInfo').textContent='';
+let tEst=null;
+function limpiarOps(){ $('nOp').innerHTML=''; $('cOp').style.display='none'; }
+$('nEst').addEventListener('input',()=>{
+  $('cEst').classList.remove('mal'); clearTimeout(tEst); const v=$('nEst').value.trim(); $('nEstInfo').style.color=''; $('nEstInfo').textContent=''; limpiarOps();
   if(!v) return;
-  tOp=setTimeout(async()=>{ try{ const d=await api('buscar_op',{op:v}); if($('nOp').value.trim()!==v) return;
-    $('nOpInfo').textContent=d.existe?[d.grupo,'estilo '+d.estilo,d.e_cliente].filter(Boolean).join(' · '):'Esa OP no está en la base de OPs; se puede seguir igual.'; }catch(e){} },500);
+  tEst=setTimeout(async()=>{ try{ const d=await api('buscar_estilo',{estilo:v}); if($('nEst').value.trim()!==v) return;
+    if(!d.existe){ $('nEstInfo').textContent='Ese estilo no está en la base de OPs; se puede seguir igual.'; return; }
+    const O=d.ops||[], G=[...new Set(O.map(o=>o.grupo).filter(Boolean))];
+    $('nEstInfo').textContent=G.join(' · ');
+    $('nOp').innerHTML='<option value="">Sin elegir</option>'+O.map(o=>'<option value="'+esc(o.op)+'">'+esc(o.op+(o.grupo?' · '+o.grupo:''))+'</option>').join('');
+    $('cOp').style.display='';
+  }catch(e){} },500);
 });
-$('nMaq').addEventListener('input',()=>{ $('cMaq').classList.remove('mal'); const n=leerMaquinas().length; $('nMsj').style.color='#5F726C'; $('nMsj').textContent=n?n+(n===1?' máquina':' máquinas'):''; });
+$('nMaq').addEventListener('input',()=>{ const n=leerMaquinas().length; $('nMsj').style.color='#5F726C'; $('nMsj').textContent=n?n+(n===1?' máquina':' máquinas'):''; });
 $('bIniciar').addEventListener('click',async()=>{
   if(!PUEDE){ aviso(INI.supervision?'Modo supervisión: no se guarda nada':'No tienes permiso para registrar',true); return; }
-  const op=$('nOp').value.trim(), M=leerMaquinas(); let mal=false;
-  if(!op){ $('cOp').classList.add('mal'); $('nOpInfo').textContent='Escribe la OP que entra.'; mal=true; }
-  if(!M.length){ $('cMaq').classList.add('mal'); $('nMsj').style.color=''; $('nMsj').textContent='Escribe al menos una máquina.'; mal=true; }
-  if(mal||OCUPADO) return;
+  const est=$('nEst').value.trim(), op=$('nOp').value||'', M=leerMaquinas();
+  if(!est){ $('cEst').classList.add('mal'); $('nEstInfo').style.color='#DC2626'; $('nEstInfo').textContent='Escribe el estilo que entra.'; $('nEst').focus(); return; }
+  if(OCUPADO) return;
   OCUPADO=true; $('bIniciar').disabled=true;
-  try{ T=await api('iniciar_cambio',{linea_cod:LINEA,op:op,maquinas:M}); $('nOp').value=''; $('nMaq').value=''; $('nOpInfo').textContent=''; $('nMsj').textContent=''; err(''); pintar(); }
+  try{ T=await api('iniciar_cambio',{linea_cod:LINEA,estilo:est,op:op,maquinas:M}); $('nEst').value=''; limpiarOps(); $('nMaq').value=''; $('nEstInfo').textContent=''; $('nMsj').textContent=''; err(''); pintar(); }
   catch(e){ err('No se pudo iniciar el cambio: '+e.message+' Lo escrito sigue aquí.'); }
   OCUPADO=false; $('bIniciar').disabled=false;
 });
 
 /* el aviso de versión nueva espera si hay algo a medias */
-window.lsTrabajoPendiente=function(){ return $('fondo').classList.contains('on')||!!$('nMaq').value.trim()||!!$('nOp').value.trim(); };
+window.lsTrabajoPendiente=function(){ return $('fondo').classList.contains('on')||!!$('nMaq').value.trim()||!!$('nEst').value.trim(); };
 /* otras tablets o celulares de la misma línea se ponen al día solas */
 setInterval(()=>{ if(LINEA&&T&&!OCUPADO&&!$('fondo').classList.contains('on')&&document.visibilityState==='visible') cargar(true); },20000);
 iniciar();
