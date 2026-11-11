@@ -9,6 +9,7 @@ Panel de BOTONES FIJOS por línea de costura, en celular o tablet (no hay botone
   - 6 botones, siempre en el mismo lugar: Cambio de estilo, Paro de máquina, Llamar supervisor, Llamar Calidad, Falta material, Duda de ficha. Salen de la tabla `and_botones`: se agregan, quitan o renombran ahí, sin tocar la pantalla.
   - LÓGICA (definida por Christian, 11/11/2026): el botón principal (código `CAMBIO`) cambia de nombre según lo que hará al tocarlo. Línea sin iniciar: dice «Inicio de operación» y los otros 5 están grises. Al tocarlo la línea queda EN PRODUCCIÓN, todo se activa y el botón pasa a decir «Cambio de estilo». Al tocar «Cambio de estilo» entra otro estilo (etapa CAMBIO): el botón vuelve a decir «Inicio de operación», queda encendido con el reloj del cambio, y los otros 5 SIGUEN activos, porque lo que pase ahí es tiempo muerto que cuenta como demora para iniciar el siguiente estilo. Al tocar «Inicio de operación» la línea vuelve a producción. Después del primer inicio los 5 botones ya no vuelven a gris.
   - Cada toque de los otros botones queda ligado a su estilo (`padre_id`) con su etapa (`etapa` = CAMBIO o PRODUCCION). Al pasar de una etapa a otra, lo que siga encendido se apaga solo (`cierre_auto`).
+  - PAUSAS (pedido de Christian, 11/11/2026): abajo, más pequeños, van «Almuerzo» (encendido dice «Fin de almuerzo») y «Finalizar día» (encendido dice «Iniciar día»). Con una pausa encendida los demás botones no responden y ningún reloj cuenta; al volver, la línea sigue donde estaba (mismo estilo y etapa) y lo que estaba encendido sigue encendido. Los minutos de todo registro descuentan las pausas reales de su línea; el almuerzo fijo de 11:00 a 11:45 ya no se descuenta. Arriba el estado dice «En almuerzo» o «Día finalizado».
   - Arriba, junto a la línea, sale el estilo y la etapa («Sin iniciar» / «En producción» / «En cambio de estilo»), y «Elegir estilo» si aún no lo eligieron. El estilo se pregunta al primer inicio («¿Qué estilo está en la línea?») y en cada cambio («¿Qué estilo entra?»).
   - Con el cambio encendido, varios botones pueden estar encendidos a la vez. «Deshacer» 8 segundos tras cada toque (quita el inicio o vuelve a encender).
   - Al encender «Cambio de estilo» sale la ventana «¿Qué estilo entra?» con los estilos de la base de OPs (`ops`), los 24 más recientes como botones y un buscador «Buscar estilo…» (teclado numérico). Se puede tocar «Después» y elegirlo luego con «Elegir estilo» en la lista de hoy.
@@ -18,12 +19,12 @@ Panel de BOTONES FIJOS por línea de costura, en celular o tablet (no hay botone
 - Pendiente (segunda entrega): dashboard de análisis con Excel LIVES (minutos por botón, por línea y por día; duración de cada cambio de estilo). La vista `publico_and_registros` ya existe para eso.
 
 ## Base de datos (Supabase lives-datos) — prefijo `and_`
-Registros en `registro_sql/`: `AD03_andon_costura_botones_fijos.sql` (panel de botones fijos, resultado final de las migraciones ad03 y ad04) y `AD04_andon_costura_botones_requieren_cambio.sql` (migración ad05) y `AD05_andon_costura_dos_etapas.sql` (migración ad06: etapas CAMBIO y PRODUCCION) y `AD06_andon_costura_inicio_de_operacion.sql` (migración ad07: botón principal «Inicio de operación» / «Cambio de estilo») son los vigentes. `AD01` y `AD02` son el diseño anterior por máquina, ya borrado de la base; se guardan solo como historia.
-- `and_botones` (catálogo con código: CAMBIO, PARO, SUP, CAL, MAT, FICHA; color azul/rojo/ambar; `pide_estilo`).
+Registros en `registro_sql/`: `AD03_andon_costura_botones_fijos.sql` (panel de botones fijos, resultado final de las migraciones ad03 y ad04) y `AD04_andon_costura_botones_requieren_cambio.sql` (migración ad05) y `AD05_andon_costura_dos_etapas.sql` (migración ad06: etapas CAMBIO y PRODUCCION) y `AD06_andon_costura_inicio_de_operacion.sql` (migración ad07: botón principal «Inicio de operación» / «Cambio de estilo») y `AD07_andon_costura_pausas_almuerzo_y_fin_de_dia.sql` (migración ad08: pausas) son los vigentes. `AD01` y `AD02` son el diseño anterior por máquina, ya borrado de la base; se guardan solo como historia.
+- `and_botones` (catálogo con código: CAMBIO, PARO, SUP, CAL, MAT, FICHA, y las pausas ALM y FIN; color azul/rojo/ambar/gris; `pide_estilo`; `pausa`; `nombre_encendido`).
 - `and_registros` (línea por código de `cat_lineas`, botón, inicio, fin, usuario de inicio y de fin, `estilo` si el botón lo pide; deshacer un inicio = `anulado`). Solo un registro en curso por línea y botón.
-- `and_parametros` (`REGISTRO_LIBRE`, `ALMUERZO_INICIO`, `ALMUERZO_FIN`).
+- `and_parametros` (`REGISTRO_LIBRE`; `ALMUERZO_INICIO` y `ALMUERZO_FIN` quedaron sin uso desde las pausas, se conservan por si se pide el descuento fijo como seguro).
 - Puerta única: `and_api(p_accion, p)` → `inicio`, `panel`, `pulsar`, `deshacer`, `estilos`, `poner_estilo`. Las escrituras devuelven el panel completo.
-- Apoyo: `and_puede` (permiso), `and_supervision_`, `and_par`, `and_minutos_` (minutos sin contar el almuerzo, hora de Lima), `and_panel_` (interna).
+- Apoyo: `and_puede` (permiso), `and_supervision_`, `and_par`, `and_minutos_(inicio, fin, línea)` (minutos sin contar las pausas de esa línea; con línea vacía no descuenta), `and_panel_` (interna).
 - Vista: `publico_and_registros`.
 - Lee de otras herramientas: `cat_lineas` (ojo: LINEA 4 = `LIN-0003`) y `ops` (lista de estilos). No usa Storage.
 - Las tablas se leen libres; escribir solo por `and_api`.
@@ -40,6 +41,7 @@ Libre durante las pruebas (`and_parametros.REGISTRO_LIBRE` = SI). Rodrigo (rcamo
 
 ## Límites conocidos
 - Depende de que alguien toque, y de que vuelva a tocar para terminar: un botón olvidado encendido infla los minutos (el reloj a la vista ayuda a notarlo).
+- Si olvidan tocar «Almuerzo» o «Finalizar día», ese tiempo cuenta como tiempo muerto de lo que esté encendido (un día sin finalizar suma toda la noche). Seguro posible, no hecho: descontar el almuerzo fijo si ese día nadie lo marcó.
 - No se sabe qué máquina paró ni el motivo fino: se decidió no pedirlo para no cansar a quien toca.
 - Con una tablet compartida no se sabe qué persona tocó si no se identifica.
 - La cronología que originó la herramienta (cambio al estilo 24323 de Theory en la Línea 4, oct-2026; 24323 es un estilo, no una OP) tiene más detalle por máquina del que este panel recoge.

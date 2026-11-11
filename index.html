@@ -646,7 +646,7 @@ body{margin:0;background:var(--warm-light);color:#333;font-family:Calibri,Arial,
 .botones{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
 @media(min-width:760px){.botones{grid-template-columns:repeat(3,1fr);gap:12px;}}
 .bot{border:3px solid transparent;font-family:inherit;cursor:pointer;background:var(--card);border-radius:16px;box-shadow:var(--sh);
-  min-height:clamp(128px,24vh,220px);padding:12px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  min-height:clamp(112px,21vh,200px);padding:12px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
   text-align:center;color:#333;position:relative;overflow:hidden;}
 .bot:active{transform:scale(.97);}
 .bot.guardando{opacity:.55;}
@@ -655,7 +655,19 @@ body{margin:0;background:var(--warm-light);color:#333;font-family:Calibri,Arial,
 .bot .tiempo{font-size:clamp(22px,3.4vw,32px);font-weight:700;line-height:1.1;display:none;}
 .bot .pista{font-size:12.5px;display:none;}
 .bot.azul{border-color:#C9D6DC;} .bot.rojo{border-color:#F3C2C2;} .bot.ambar{border-color:#F6DDB5;}
+.bot.gris{border-color:var(--warm);}
+.bot.on.gris{background:var(--petrol);border-color:var(--petrol);}
 .bot.bloq{opacity:.38;box-shadow:none;cursor:not-allowed;}
+.bot.on.bloq{opacity:.5;}
+/* Pausas de la línea (almuerzo y fin del día): abajo y más pequeñas */
+.pausas{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px;}
+@media(min-width:760px){.pausas{gap:12px;}}
+.pausas .bot{min-height:64px;flex-direction:row;flex-wrap:wrap;gap:2px 8px;padding:8px 10px;}
+.pausas .bot .ic{font-size:22px;}
+.pausas .bot .nom{font-size:clamp(15px,2.2vw,19px);}
+.pausas .bot .tiempo{font-size:clamp(15px,2.2vw,19px);}
+.pausas .bot .pista{flex-basis:100%;font-size:12px;}
+.chip.pausa{background:var(--petrol);color:#fff;}
 .bot.bloq:active{transform:none;}
 .bot.on .tiempo,.bot.on .pista{display:block;}
 .bot.on .ic{font-size:26px;}
@@ -713,6 +725,7 @@ td .btn{min-height:34px;padding:2px 10px;font-size:12.5px;}
   <div id="vPanel" style="display:none">
     <div class="fijo lsand-menu" data-ls-fijo><span class="id" id="pLinea"></span><span class="chip" id="pEtapa"></span><button type="button" class="btn" id="bEstilo" style="display:none">Elegir estilo</button><button type="button" class="btn" id="bLinea">Cambiar línea</button></div>
     <div class="botones lsand-menu" id="botones"></div>
+    <div class="pausas lsand-menu" id="pausas"></div>
     <div class="panel lsand-menu"><span class="tira"></span>
       <div class="tscroll"><table><thead><tr><th>Inicio</th><th>Fin</th><th>Qué pasó</th><th>Minutos</th></tr></thead><tbody id="hoy"></tbody></table></div>
       <div class="vacio" id="hoyVacio" style="display:none">Hoy todavía no hay registros en esta línea.</div>
@@ -823,29 +836,36 @@ async function cargar(silencio){
 }
 /* minutos en curso: lo que dijo la base más lo que pasó desde entonces en este equipo */
 function extra(){ return Math.floor((Date.now()-T0)/60000); }
+/* con la línea en pausa (almuerzo o día finalizado) solo avanza el reloj de la pausa */
+function extraDe(esPausa){ return (P&&P.pausa&&!esPausa)?0:extra(); }
 function pintar(){
   if(!P) return;
   /* la línea siempre está en una de tres situaciones: sin estilo, en cambio de estilo, o produciendo el estilo */
   const V=P.vigente||null;
   $('pLinea').textContent=nomLinea()+(V&&V.estilo?' · Estilo '+V.estilo:'');
-  $('pEtapa').textContent=!V?'Sin iniciar':(V.etapa==='CAMBIO'?'En cambio de estilo':'En producción');
-  $('pEtapa').className='chip'+(!V?'':(V.etapa==='CAMBIO'?' cambio':' prod'));
+  const Z=P.pausa||null;
+  $('pEtapa').textContent=Z?(Z.codigo==='FIN'?'Día finalizado':'En '+String(Z.nombre||'pausa').toLowerCase()):(!V?'Sin iniciar':(V.etapa==='CAMBIO'?'En cambio de estilo':'En producción'));
+  $('pEtapa').className='chip'+(Z?' pausa':(!V?'':(V.etapa==='CAMBIO'?' cambio':' prod')));
   $('bEstilo').style.display=(V&&!V.estilo&&PUEDE)?'':'none';
-  $('botones').innerHTML=(P.botones||[]).map(b=>{
+  const boton=b=>{
     const a=b.abierto, on=!!a;
     /* El botón principal cambia de nombre según lo que hará al tocarlo:
        «Inicio de operación» si la línea no ha iniciado o está en cambio de estilo; «Cambio de estilo» si está en producción. */
     const principal=!!b.pide_estilo, enProd=!!(V&&V.etapa==='PRODUCCION');
-    const nom=principal?(enProd?'Cambio de estilo':'Inicio de operación'):b.nombre;
+    const nom=principal?(enProd?'Cambio de estilo':'Inicio de operación'):(b.pausa&&on?(b.nombre_encendido||b.nombre):b.nombre);
     const ico=principal?(enProd?b.icono:'▶️'):b.icono;
-    const pista=!on?'':(principal?'en cambio de estilo desde las '+hhmm(a.inicio)+' · toca cuando la línea esté lista':'desde las '+hhmm(a.inicio)+' · toca para terminar');
-    const bloq=!on&&!!b.bloqueado;      /* gris hasta que esté encendido el botón que requiere (Cambio de estilo) */
+    const pista=!on?'':(principal?'en cambio de estilo desde las '+hhmm(a.inicio)+' · toca cuando la línea esté lista':(b.pausa?'desde las '+hhmm(a.inicio)+' · toca al volver':'desde las '+hhmm(a.inicio)+' · toca para terminar'));
+    /* gris: la línea no ha iniciado, o está en pausa (ahí solo responde el botón de la pausa; lo encendido sigue encendido pero quieto) */
+    const bloq=(Z&&Z.codigo!==b.codigo)||(!on&&!!b.bloqueado);
     return '<button type="button" class="bot '+esc(b.color)+(on?' on':'')+(bloq?' bloq':'')+'" data-b="'+esc(b.codigo)+'" aria-pressed="'+on+'"'+(bloq?' data-req="'+esc(b.requiere||'')+'"':'')+'>'+
       '<span class="ic">'+esc(ico)+'</span><span class="nom">'+esc(nom)+'</span>'+
-      '<span class="tiempo">'+(on?dur(Number(a.min||0)+extra()):'')+'</span><span class="pista">'+esc(pista)+'</span></button>';
-  }).join('');
+      '<span class="tiempo">'+(on?dur(Number(a.min||0)+extraDe(b.pausa)):'')+'</span><span class="pista">'+esc(pista)+'</span></button>';
+  };
+  const B=P.botones||[];
+  $('botones').innerHTML=B.filter(b=>!b.pausa).map(boton).join('');
+  $('pausas').innerHTML=B.filter(b=>b.pausa).map(boton).join('');
   const H=P.hoy||[];
-  $('hoy').innerHTML=H.map(r=>'<tr><td>'+hhmm(r.inicio)+'</td><td>'+(r.fin?hhmm(r.fin):'en curso')+'</td><td><b>'+esc(r.boton==='Cambio de estilo'&&r.fin&&r.fin===r.inicio?'Inicio de operación':r.boton)+'</b>'+(r.estilo?' · estilo '+esc(r.estilo):'')+(r.etapa==='PRODUCCION'?' · en producción':(r.etapa==='CAMBIO'?' · en el cambio':''))+'</td><td>'+dur(r.fin?r.min:Number(r.min||0)+extra())+'</td></tr>').join('');
+  $('hoy').innerHTML=H.map(r=>'<tr><td>'+hhmm(r.inicio)+'</td><td>'+(r.fin?hhmm(r.fin):'en curso')+'</td><td><b>'+esc(r.boton==='Cambio de estilo'&&r.fin&&r.fin===r.inicio?'Inicio de operación':r.boton)+'</b>'+(r.estilo?' · estilo '+esc(r.estilo):'')+(r.pausa?'':(r.etapa==='PRODUCCION'?' · en producción':(r.etapa==='CAMBIO'?' · en el cambio':'')))+'</td><td>'+dur(r.fin?r.min:Number(r.min||0)+extraDe(r.pausa))+'</td></tr>').join('');
   $('hoyVacio').style.display=H.length?'none':'';
   ver('vPanel');
 }
@@ -855,10 +875,10 @@ function aviso(txt,mal,deshacer){
   a.classList.add('on'); clearTimeout(tAviso); tAviso=setTimeout(()=>{ a.classList.remove('on'); ULTIMO=null; },mal?6000:8000);
 }
 /* un toque enciende, otro toque apaga: eso es todo */
-$('botones').addEventListener('click',async e=>{
+async function tocar(e){
   const b=e.target.closest('.bot'); if(!b||OCUPADO) return;
   if(!PUEDE){ aviso(INI.supervision?'Modo supervisión: no se guarda nada':'No tienes permiso para registrar',true); return; }
-  if(b.classList.contains('bloq')){ aviso('Primero toca «Inicio de operación»',true); return; }
+  if(b.classList.contains('bloq')){ const z=P&&P.pausa; aviso(z?'La línea está en pausa: toca «'+(z.nombre_encendido||z.nombre)+'»':'Primero toca «Inicio de operación»',true); return; }
   OCUPADO=true; b.classList.add('guardando');
   try{
     const d=await api('pulsar',{linea_cod:LINEA,boton:b.dataset.b});
@@ -867,12 +887,15 @@ $('botones').addEventListener('click',async e=>{
     ULTIMO={registro_id:d.registro_id,hecho:d.hecho};
     const enProd=!!(d.vigente&&d.vigente.etapa==='PRODUCCION');
     aviso(bo.pide_estilo?((enProd?'Inicio de operación':'Cambio de estilo')+' a las '+hhmm(d.ahora))
+         :bo.pausa?((d.hecho==='INICIO'?bo.nombre:(bo.nombre_encendido||bo.nombre))+' a las '+hhmm(d.ahora))
                         :((bo.nombre||'')+(d.hecho==='INICIO'?': empezó a las '+hhmm(d.ahora):': terminó a las '+hhmm(d.ahora))),false,true);
     try{ if(navigator.vibrate) navigator.vibrate(60); }catch(x){}
     if(d.hecho==='INICIO'&&bo.pide_estilo) abrirEstilos(d.registro_id,enProd?'¿Qué estilo está en la línea?':'¿Qué estilo entra?');
   }catch(x){ b.classList.remove('guardando'); aviso('No se guardó: '+x.message,true); }
   OCUPADO=false;
-});
+}
+$('botones').addEventListener('click',tocar);
+$('pausas').addEventListener('click',tocar);
 $('avBtn').addEventListener('click',async()=>{
   const u=ULTIMO; $('aviso').classList.remove('on'); ULTIMO=null; if(!u||OCUPADO) return;
   OCUPADO=true; cerrarEstilos();
