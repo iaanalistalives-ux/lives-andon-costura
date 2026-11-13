@@ -685,6 +685,9 @@ td{padding:8px 6px;border-bottom:1px solid var(--warm-light);}
 td .btn{min-height:34px;padding:2px 10px;font-size:12.5px;}
 .vacio{padding:16px 8px;text-align:center;color:var(--stone);}
 .pie{display:flex;justify-content:center;margin-top:16px;}
+/* Reiniciar la línea: debajo de lo registrado */
+.reinicio{display:flex;justify-content:flex-end;margin-top:10px;}
+.reinicio .btn{min-height:40px;font-size:13px;}
 
 /* Qué estilo entra: botones tomados de la base de OPs */
 .fondo{position:fixed;inset:0;background:rgba(14,59,54,.55);z-index:2000;display:none;align-items:flex-end;justify-content:center;}
@@ -729,6 +732,7 @@ td .btn{min-height:34px;padding:2px 10px;font-size:12.5px;}
     <div class="panel lsand-menu"><span class="tira"></span>
       <div class="tscroll"><table><thead><tr><th>Inicio</th><th>Fin</th><th>Qué pasó</th><th>Minutos</th></tr></thead><tbody id="hoy"></tbody></table></div>
       <div class="vacio" id="hoyVacio" style="display:none">Hoy todavía no hay registros en esta línea.</div>
+      <div class="reinicio lsand-menu" id="reinicio" style="display:none"><button type="button" class="btn" id="bReiniciar">↺ Reiniciar</button></div>
     </div>
   </div>
 
@@ -868,6 +872,8 @@ function pintar(){
   const H=P.hoy||[];
   $('hoy').innerHTML=H.map(r=>'<tr><td>'+hhmm(r.inicio)+'</td><td>'+(r.fin?hhmm(r.fin):'en curso')+'</td><td><b>'+esc(r.boton==='Cambio de estilo'&&r.fin&&r.fin===r.inicio?'Inicio de operación':r.boton)+'</b>'+(r.estilo?' · estilo '+esc(r.estilo):'')+((r.pausa||r.cierre)?'':(r.etapa==='PRODUCCION'?' · en producción':(r.etapa==='CAMBIO'?' · en el cambio':'')))+'</td><td>'+(r.cierre?'':dur(r.fin?r.min:Number(r.min||0)+extraDe(r.pausa)))+'</td></tr>').join('');
   $('hoyVacio').style.display=H.length?'none':'';
+  /* «Reiniciar» solo cuando hay algo que reiniciar (registros de hoy, un estilo en la línea o una pausa) */
+  $('reinicio').style.display=(PUEDE&&(H.length||V||Z))?'':'none';
   ver('vPanel');
 }
 
@@ -906,6 +912,33 @@ $('avBtn').addEventListener('click',async()=>{
   OCUPADO=false;
 });
 
+/* ===== reiniciar la línea: quita de la lista lo registrado hoy y la línea vuelve a «Sin iniciar» (siempre pregunta antes) ===== */
+function abrirReinicio(){
+  if($('ovReinicio')||!LINEA||!PUEDE||OCUPADO) return;
+  const ov=document.createElement('div'); ov.id='ovReinicio';
+  ov.style.cssText='position:fixed;inset:0;z-index:2147482500;background:rgba(14,59,54,.55);display:flex;align-items:center;justify-content:center;padding:16px';
+  const bt='flex:1;min-height:48px;border-radius:10px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;';
+  ov.innerHTML='<div role="dialog" aria-label="Reiniciar la línea" style="background:#fff;color:#0E3B36;border-radius:14px;max-width:420px;width:100%;padding:18px;box-shadow:0 10px 40px rgba(0,0,0,.3)">'+
+    '<div style="font-weight:700;font-size:18px;margin-bottom:6px">¿Reiniciar '+esc(nomLinea())+'?</div>'+
+    '<div style="font-size:14px;color:#5F726C;margin-bottom:14px">Se quita todo lo registrado hoy en esta línea y vuelve a «Sin iniciar».</div>'+
+    '<div id="rErr" style="color:#DC2626;font-size:13px;min-height:18px;margin-bottom:6px"></div>'+
+    '<div style="display:flex;gap:8px"><button type="button" id="rOk" style="'+bt+'border:none;background:#DC2626;color:#fff">Sí, reiniciar</button>'+
+    '<button type="button" id="rNo" style="'+bt+'border:1px solid #DCE5E2;background:#fff;color:#0E3B36">Cancelar</button></div></div>';
+  document.body.appendChild(ov);
+  $('rNo').addEventListener('click',()=>ov.remove());
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+  $('rOk').addEventListener('click',async()=>{
+    if(OCUPADO) return;
+    OCUPADO=true; $('rOk').disabled=true; $('rOk').style.opacity='.55';
+    try{
+      P=await api('reiniciar',{linea_cod:LINEA}); T0=Date.now(); ULTIMO=null; cerrarEstilos(); ov.remove(); pintar(); err('');
+      aviso('Línea reiniciada',false,false);
+    }catch(x){ $('rErr').textContent='No se reinició: '+x.message; $('rOk').disabled=false; $('rOk').style.opacity=''; }
+    OCUPADO=false;
+  });
+}
+$('bReiniciar').addEventListener('click',abrirReinicio);
+
 /* ===== qué estilo entra: se toca, no se escribe (la lista sale de la base de OPs, lo más reciente primero) ===== */
 function pintarEstilos(){
   const q=norm($('eBuscar').value), L=(ESTILOS||[]).filter(s=>!q||norm(s.estilo).indexOf(q)>=0).slice(0,q?60:24);
@@ -928,9 +961,9 @@ $('fondo').addEventListener('click',async e=>{
   catch(x){ aviso('No se guardó el estilo: '+x.message,true); }
 });
 $('bEstilo').addEventListener('click',()=>{ if(P&&P.vigente&&PUEDE) abrirEstilos(P.vigente.id,P.vigente.etapa==='PRODUCCION'?'¿Qué estilo está en la línea?':'¿Qué estilo entra?'); });
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') cerrarEstilos(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ cerrarEstilos(); const o=$('ovReinicio'); if(o&&!OCUPADO) o.remove(); } });
 
-window.lsTrabajoPendiente=function(){ return $('fondo').classList.contains('on'); };
+window.lsTrabajoPendiente=function(){ return $('fondo').classList.contains('on')||!!$('ovReinicio'); };
 /* otras tablets o celulares de la misma línea se ponen al día solas, y los relojes avanzan */
 setInterval(()=>{ if(LINEA&&P&&!OCUPADO&&!$('fondo').classList.contains('on')&&document.visibilityState==='visible') cargar(true); },15000);
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&LINEA&&P&&!OCUPADO&&!$('fondo').classList.contains('on')) cargar(true); });
